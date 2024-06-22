@@ -1,16 +1,23 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
 
-const Toolbar = ({ title, ...props }) => {
+const Toolbar = ({ title, className, sx, styleTilte, ...props }) => {
   return (
     <Box
       variant="div"
-      className="page-container"
+      className={className}
       display="flex"
       justifyContent="space-between"
       bgcolor="text.light"
+      sx={sx}
     >
-      <Typography variant="p" fontSize={16} fontWeight={500} color="text.main">
+      <Typography
+        variant="p"
+        fontSize={16}
+        fontWeight={500}
+        color="text.main"
+        style={styleTilte}
+      >
         {title}
       </Typography>
 

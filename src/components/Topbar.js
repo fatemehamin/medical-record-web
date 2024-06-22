@@ -27,7 +27,7 @@ const Topbar = ({ title }) => {
           cursor="pointer"
         />
 
-        <FiBell color={theme.palette.primary.main} size={24} cursor="pointer" />
+        <FiBell color={theme.palette.primary.main} size={32} cursor="pointer" />
 
         <Avatar
           alt={username}

@@ -3,9 +3,13 @@ import { persistReducer, persistStore } from "redux-persist";
 import { thunk } from "redux-thunk";
 import storage from "redux-persist/lib/storage";
 import authReducer from "../features/auth/authSlice";
+import medicalDocReducer from "../features/medicalDoc/medicalDocSlice";
+import doctorsReducer from "../features/doctors/doctorsSlice";
 
 const combineReducer = combineReducers({
   auth: authReducer,
+  medicalDoc: medicalDocReducer,
+  doctors: doctorsReducer,
 });
 
 const rootReducer = (state, action) => {

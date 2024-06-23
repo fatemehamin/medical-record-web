@@ -6,12 +6,12 @@ export const login = createAsyncThunk(
   "auth/login",
   async ({ username, password }, { rejectWithValue }) => {
     try {
-      const formDate = new FormData();
+      const formData = new FormData();
 
-      formDate.append("username", username);
-      formDate.append("password", password);
+      formData.append("username", username);
+      formData.append("password", password);
 
-      await axiosAPI.post("/login/", formDate);
+      await axiosAPI.post("/login/", formData);
 
       crypto.saveSecureData("auth", { username, password });
 

@@ -1,34 +1,54 @@
+import React, { useEffect, useMemo, useState } from "react";
+import moment from "moment-jalaali";
+import Topbar from "../components/Topbar";
+import Toolbar from "../components/Toolbar";
+import theme from "../Theme";
+import ButtonText from "../components/ButtonText";
+import NoDocPic from "../assets/no_doc_pic.png";
+import { useDispatch, useSelector } from "react-redux";
+import { ReactComponent as Backward } from "../assets/Icons/backward.svg";
+import { ReactComponent as SelectIcon } from "../assets/Icons/Select.svg";
+import { searchDocs } from "../features/medicalDoc/medicalDocSlice";
+import { FiPlusCircle, FiSearch, FiShare2 } from "react-icons/fi";
+import { LuTrash2 } from "react-icons/lu";
 import {
   Box,
-  Button,
   Checkbox,
   Collapse,
   Menu,
   MenuItem,
-  Modal,
-  TextField,
   Typography,
-  alpha,
 } from "@mui/material";
-import React, { useEffect, useMemo, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import Topbar from "../components/Topbar";
-import "./MedicalDocuments.css";
-import Toolbar from "../components/Toolbar";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchMedicalDocs } from "../features/medicalDoc/action";
-import theme from "../Theme";
+import {
+  deleteMedicalDocs,
+  fetchMedicalDocs,
+} from "../features/medicalDoc/action";
 import {
   ExpandLessRounded as Down,
   ExpandMoreRounded as Up,
   MoreVertRounded,
 } from "@mui/icons-material";
-import Select from "../components/Select";
-import Search from "../components/Search";
-import AddDocument from "../components/AddDocument";
-import moment from "moment-jalaali";
+import {
+  ModalAddDoc,
+  ModalDeleteDoc,
+  ModalSearch,
+  ModalShare,
+} from "../components/FormModals";
+import MenuComponent from "../components/menu";
+import { useNavigate } from "react-router-dom";
 
 const styles = {
+  collapseContainer: {
+    display: "flex",
+    borderRadius: 2,
+    border: "1px solid",
+    margin: "5px 0px",
+    minHeight: 42,
+    padding: "5px 16px",
+    alignItems: "center",
+    justifyContent: "space-between",
+    cursor: "pointer",
+  },
   collapse: {
     bgcolor: theme.palette.tritary[100],
     border: `${theme.palette.tritary.main} 1px solid`,
@@ -47,22 +67,39 @@ const styles = {
     alignItems: "center",
     minHeight: 42,
   },
+  menu: {
+    ".MuiPaper-root": {
+      boxShadow: "0px 0px 10px 5px #878b9410",
+      backgroundColor: "tritary.50",
+      borderRadius: "12px",
+      p: 1,
+    },
+  },
+  moreIcon: { flex: 1, cursor: "pointer" },
+  btn: { borderRadius: 2, width: 150 },
 };
 
 const CollapesItem = ({ tag, docs, setSelectList, selectList, isSelect }) => {
   const [collapsed, setCollasped] = useState(false);
   const [unSelectItemGroup, setUnSelectItemGroup] = useState(docs);
   const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
+  const [currentDocId, setCurrentDocId] = useState(null);
 
-  const handleClick = (event) => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isSelect) {
+      setUnSelectItemGroup(docs);
+    }
+  }, [isSelect]);
+
+  const handleClick = (event, id) => {
     event.stopPropagation();
     setAnchorEl(event.currentTarget);
+    setCurrentDocId(id);
   };
 
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+  const handleClose = () => setAnchorEl(null);
 
   const handleMultiSelected = (event) => {
     const { checked } = event.target;
@@ -104,6 +141,7 @@ const CollapesItem = ({ tag, docs, setSelectList, selectList, isSelect }) => {
       <Box
         variant="div"
         className="collapse-container"
+        sx={styles.collapseContainer}
         borderColor="primary.main"
         onClick={toggleCollapse}
       >
@@ -147,7 +185,12 @@ const CollapesItem = ({ tag, docs, setSelectList, selectList, isSelect }) => {
         </Box>
 
         {docs.map((doc, index) => (
-          <Box key={index} variant="div" sx={styles.dataTable}>
+          <Box
+            key={index}
+            variant="div"
+            sx={styles.dataTable}
+            onClick={() => navigate(`/medicalDocument/${doc.id}`)}
+          >
             <Typography
               color="text.main"
               fontWeight={400}
@@ -175,59 +218,223 @@ const CollapesItem = ({ tag, docs, setSelectList, selectList, isSelect }) => {
               {moment(doc.result_date).format("DD MMM YYYY")}
             </Typography>
 
-            <MoreVertRounded sx={{ flex: 1 }} onClick={handleClick} />
+            <MoreVertRounded
+              sx={styles.moreIcon}
+              onClick={(e) => handleClick(e, doc.id)}
+            />
           </Box>
         ))}
+        {!!anchorEl && (
+          <MenuComponent
+            anchorEl={anchorEl}
+            handleClose={handleClose}
+            id={currentDocId}
+          />
+        )}
       </Collapse>
     </>
   );
 };
 
+const NoDocsComponent = ({ handleOpenAddDoc }) => (
+  <Box
+    variant="div"
+    className="page-container"
+    flex={1}
+    bgcolor="text.light"
+    display="flex"
+    flexDirection="column"
+    alignItems="center"
+    justifyContent="center"
+  >
+    <img src={NoDocPic} width={265} />
+    <Typography fontSize={20} fontWeight={400} p={2} color="text.main">
+      No documents have been added yet
+    </Typography>
+    <ButtonText
+      Icon={FiPlusCircle}
+      onClick={handleOpenAddDoc}
+      title="Add New Document"
+      color="primary.main"
+    />
+  </Box>
+);
+
 const MedicalDocuments = () => {
   const [isSelect, setIsSelect] = useState(false);
   const [selectList, setSelectList] = useState([]);
+  const [openModalAddDoc, setOpenModalAddDoc] = useState(false);
+  const [openModalSearch, setOpenModalSearch] = useState(false);
+  const [openModalDeleteDoc, setOpenModalDeleteDoc] = useState(false);
+  const [openModalShare, setOpenModalShare] = useState(false);
 
-  const { docs, tags } = useSelector((state) => state.medicalDoc);
+  const { docs, tags, AllTags } = useSelector((state) => state.medicalDoc);
 
   const dispatch = useDispatch();
 
-  // useEffect(() => {
-  //   dispatch(fetchMedicalDocs);
-  // }, []);
+  useEffect(() => {
+    dispatch(fetchMedicalDocs());
+  }, []);
+
+  const handleOpenAddDoc = () => setOpenModalAddDoc(true);
+  const handleCloseAddDoc = () => setOpenModalAddDoc(false);
+
+  const handleOpenSearch = () => setOpenModalSearch(true);
+  const handleCloseSearch = () => setOpenModalSearch(false);
+
+  const handleOpenDelete = () => setOpenModalDeleteDoc(true);
+  const handleCloseDelete = () => setOpenModalDeleteDoc(false);
+
+  const handleOpenShare = () => setOpenModalShare(true);
+  const handleCloseShare = () => setOpenModalShare(false);
 
   const groupDocs = useMemo(
     () =>
-      tags.map((tag) => ({ tag, docs: docs.filter((doc) => doc.tag === tag) })),
+      tags?.map((tag) => ({
+        tag: AllTags.find((t) => t.key === tag)?.value,
+        docs: docs?.filter((doc) => doc.tag === tag),
+      })),
     [tags, docs]
   );
+
+  const handleSearch = (data) => {
+    dispatch(searchDocs(data));
+    handleCloseSearch();
+  };
+
+  const handleSelect = () => setIsSelect((s) => !s);
+
+  const handleCancelSelect = () => {
+    setIsSelect(false);
+    setSelectList([]);
+  };
+
+  const handleDelete = () => {
+    const arg = selectList.map((doc) => doc.id);
+    dispatch(deleteMedicalDocs(arg));
+    handleCloseDelete();
+    handleCancelSelect();
+  };
+
+  const handleShare = () => {
+    handleCloseShare();
+    handleCancelSelect();
+  };
 
   return (
     <Box variant="div" display="flex" flexDirection="column" flex={1} p={3}>
       <Topbar title="Medical Documents" />
 
-      <Toolbar title={`${docs.length} Documents Total`}>
-        <Select setIsSelect={setIsSelect} />
-        <Search />
-        <AddDocument />
-      </Toolbar>
+      {docs.length ? (
+        <>
+          <Toolbar
+            className="page-container"
+            title={`${docs.length} Documents Total`}
+          >
+            {isSelect ? (
+              <>
+                <ButtonText
+                  title="Share"
+                  Icon={FiShare2}
+                  onClick={handleOpenShare}
+                  disable={!selectList.length}
+                />
 
-      <Box
-        variant="div"
-        className="page-container"
-        flex={1}
-        bgcolor="text.light"
-      >
-        {groupDocs.map((group, index) => (
-          <CollapesItem
-            isSelect={isSelect}
-            key={index}
-            tag={group.tag}
-            docs={group.docs}
-            setSelectList={setSelectList}
-            selectList={selectList}
-          />
-        ))}
-      </Box>
+                <ButtonText
+                  title="Delete"
+                  Icon={LuTrash2}
+                  onClick={handleOpenDelete}
+                  disable={!selectList.length}
+                />
+
+                <ButtonText
+                  title="Cancel"
+                  typeProps="stroke"
+                  onClick={handleCancelSelect}
+                  Icon={() => (
+                    <Backward
+                      stroke={theme.palette.primary.main}
+                      width={24}
+                      className="iconBtn"
+                    />
+                  )}
+                />
+              </>
+            ) : (
+              <>
+                <ButtonText
+                  title="Select"
+                  typeProps="stroke"
+                  color="text.100"
+                  onClick={handleSelect}
+                  Icon={() => (
+                    <SelectIcon
+                      stroke={theme.palette.text[100]}
+                      width={24}
+                      className="iconBtn"
+                    />
+                  )}
+                />
+
+                <ButtonText
+                  Icon={FiSearch}
+                  onClick={handleOpenSearch}
+                  title="Search"
+                  color="text.100"
+                />
+
+                <ButtonText
+                  Icon={FiPlusCircle}
+                  onClick={handleOpenAddDoc}
+                  title="Add New Document"
+                  color="primary.main"
+                />
+              </>
+            )}
+          </Toolbar>
+
+          <Box
+            variant="div"
+            className="page-container"
+            flex={1}
+            bgcolor="text.light"
+          >
+            {groupDocs.map((group, index) => (
+              <CollapesItem
+                isSelect={isSelect}
+                key={index}
+                tag={group.tag}
+                docs={group.docs}
+                setSelectList={setSelectList}
+                selectList={selectList}
+              />
+            ))}
+          </Box>
+        </>
+      ) : (
+        <NoDocsComponent handleOpenAddDoc={handleOpenAddDoc} />
+      )}
+
+      <ModalAddDoc open={openModalAddDoc} handleClose={handleCloseAddDoc} />
+
+      <ModalSearch
+        open={openModalSearch}
+        handleClose={handleCloseSearch}
+        handleSearch={handleSearch}
+      />
+
+      <ModalDeleteDoc
+        open={openModalDeleteDoc}
+        handleClose={handleCloseDelete}
+        count={selectList.length}
+        handleDelete={handleDelete}
+      />
+
+      <ModalShare
+        open={openModalShare}
+        handleClose={handleCloseShare}
+        handleShare={handleShare}
+      />
     </Box>
   );
 };

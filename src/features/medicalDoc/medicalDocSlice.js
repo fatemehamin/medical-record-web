@@ -1,5 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { addMedicalDocs, deleteMedicalDocs, fetchMedicalDocs } from "./action";
+import {
+  addMedicalDocs,
+  deleteMedicalDocs,
+  fetchMedicalDocs,
+  fetchOCR,
+} from "./action";
 
 const initialState = {
   AllTags: [
@@ -17,6 +22,7 @@ const initialState = {
   ],
   docs: [],
   tags: [],
+  tables: [],
   isLoading: false,
   error: null,
 };
@@ -91,6 +97,17 @@ const medicalDocSlice = createSlice({
     builder.addCase(deleteMedicalDocs.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
+    });
+    builder.addCase(fetchOCR.pending, (state) => {
+      state.isLoading = true;
+    });
+    builder.addCase(fetchOCR.fulfilled, (state, action) => {
+      state.tables = action.payload;
+      state.isLoading = false;
+    });
+    builder.addCase(fetchOCR.rejected, (state, action) => {
+      state.error = action.payload;
+      state.isLoading = false;
     });
   },
 });

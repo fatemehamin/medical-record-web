@@ -39,3 +39,8 @@ export const deleteMedicalDocs = createAsyncThunk(
     return { result_id };
   }
 );
+
+export const fetchOCR = createAsyncThunk("medicalDoc/fetchOCR", async () => {
+  const res = await axiosAPI.get("offline_data/med_doc/");
+  return res.data;
+});

@@ -15,13 +15,21 @@ const style = (typeProps, disable, color) => ({
   },
 });
 
-const ButtonText = ({ onClick, Icon, title, typeProps, disable, color }) => {
+const ButtonText = ({
+  Icon = () => {},
+  title,
+  typeProps,
+  disable,
+  sx,
+  color = "primary.main",
+  onClick = () => {},
+}) => {
   const initOnClick = () => (disable ? {} : onClick());
 
   return (
     <Box
       variant="p"
-      sx={style(typeProps, disable, color)}
+      sx={{ ...style(typeProps, disable, color), ...sx }}
       gap={1}
       onClick={initOnClick}
     >

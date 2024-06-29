@@ -50,6 +50,7 @@ const Input = forwardRef(
         </Typography>
         <TextField
           {...props}
+          ref={ref}
           type={
             type === "password" ? (showPassword ? "text" : "password") : type
           }

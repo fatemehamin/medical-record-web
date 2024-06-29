@@ -2,10 +2,10 @@ import { Typography } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { ReactComponent as Calendar } from "../assets/Icons/calendar.svg";
-import React from "react";
+import React, { forwardRef } from "react";
 import theme from "../Theme";
 
-const InputDate = ({ title, ...props }) => {
+const InputDate = forwardRef(({ title, ...props }, ref) => {
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Typography fontSize={12} fontWeight={400} color="text.main" pb="3px">
@@ -13,6 +13,7 @@ const InputDate = ({ title, ...props }) => {
       </Typography>
       <DatePicker
         {...props}
+        ref={ref}
         slots={{
           openPickerIcon: (p) => (
             <Calendar {...p} stroke={theme.palette.text[100]} width={16} />
@@ -27,6 +28,6 @@ const InputDate = ({ title, ...props }) => {
       />
     </LocalizationProvider>
   );
-};
+});
 
 export default InputDate;

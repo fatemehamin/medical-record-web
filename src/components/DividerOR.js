@@ -9,7 +9,7 @@ const styles = {
 
 const Divider_or = () => {
   return (
-    <Box variant="div" display="flex" alignItems="center" m="8px 0px">
+    <Box variant="div" display="flex" alignItems="center">
       <span style={styles.line} />
       <Typography sx={styles.text}>or</Typography>
       <span style={styles.line} />

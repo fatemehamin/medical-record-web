@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useEffect } from "react";
 import * as Yup from "yup";
 import * as crypto from "../../utils/crypto";
 import Google from "../../assets/Icons/Google.png";
@@ -7,16 +7,15 @@ import theme from "../../Theme";
 import Btn from "../../components/Btn";
 import DividerOR from "../../components/DividerOR";
 import ButtonText from "../../components/ButtonText";
+import BackgroundAuth from "../../assets/BackgroundAuth.svg";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "../../features/auth/action";
-import { Box, Typography } from "@mui/material";
-import { useNavigate, useParams } from "react-router-dom";
+import { Box, Grid, Typography } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
-import { ReactComponent as BackgroundAuth } from "../../assets/background_auth.svg";
 import { ReactComponent as LogoIcon } from "../../assets/Icons/logo_icon.svg";
-import { ReactComponent as LogoText } from "../../assets/Icons/logo_text.svg";
 
 const loginSchema = Yup.object().shape({
   username: Yup.string().trim().required("username is required"),
@@ -26,28 +25,24 @@ const loginSchema = Yup.object().shape({
 const styles = {
   container: {
     bgcolor: "primary.main",
+    backgroundRepeat: "no-repeat",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
     borderRadius: 3,
     width: "80%",
-    height: "80%",
-    display: "flex",
+    minHeight: { md: "90%", xs: "auto" },
     p: 3,
     boxSizing: "border-box",
-  },
-  imgBackground: {
-    position: "absolute",
-    opacity: 0.05,
-    width: "80%",
-    left: "7%",
-    height: "100%",
-    fill: theme.palette.primary[50],
+    backgroundImage: `url(${BackgroundAuth})`,
+    position: "relative",
   },
   logo: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    flex: 1,
     p: 3,
+    zIndex: 2,
   },
   form: {
     boxShadow: "0px 0px 10px 5px #878B9410",
@@ -57,16 +52,22 @@ const styles = {
     p: "24px 16px",
     m: 1,
     borderRadius: 2,
-    width: 368,
+    width: { lg: 368, md: 300, xs: "80%" },
     flexDirection: "column",
     display: "flex",
+    zIndex: 2,
+  },
+  loginDocBtn: { display: "flex", justifyContent: "center", mt: 4 },
+  textLogo: {
+    fontFamily: "Sansita Swashed",
+    fontWeight: 400,
+    textAlign: "center",
+    color: "text.10",
   },
 };
 
 const Login = () => {
-  const { typeUser } = useParams();
-
-  const { username } = useSelector((state) => state.auth);
+  const { username, error } = useSelector((state) => state.auth);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -74,6 +75,7 @@ const Login = () => {
   const {
     control,
     handleSubmit,
+    setError,
     formState: { errors, isValid },
   } = useForm({
     resolver: yupResolver(loginSchema),
@@ -83,6 +85,20 @@ const Login = () => {
     },
   });
 
+  useEffect(
+    useCallback(() => {
+      !!error?.length &&
+        error.forEach((key) => {
+          if (key === "INVALID_USERNAME_PASSWORD") {
+            setError("password", {
+              message: "Username or password Invalid",
+            });
+          }
+        });
+    }, [error]),
+    [error]
+  );
+
   const onSubmit = (data) => {
     const formdata = { ...data };
     dispatch(login(formdata))
@@ -91,46 +107,36 @@ const Login = () => {
       .catch((err) => console.log("err", err));
   };
 
-  const goToSignup = () => navigate(`/signup/${typeUser}`);
+  const goToSignup = () => navigate(`/signup/`);
 
-  const loginWithGoogle = useGoogleLogin({
+  const handleGoogleLogin = useGoogleLogin({
     onSuccess: (credentialResponse) => {
       console.log(credentialResponse);
     },
+
     onError: () => {
       console.log("Login Failed");
     },
   });
 
   return (
-    <Box
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-      flex={1}
-      position="relative"
-    >
-      <BackgroundAuth style={styles.imgBackground} />
-      <Box variant="div" sx={styles.container}>
-        <Box component="div" sx={styles.logo}>
-          <LogoIcon stroke={theme.palette.text[10]} width={77} />
-          <LogoText fill={theme.palette.text[10]} style={{ padding: 5 }} />
+    <Grid container alignItems="center" justifyContent="center">
+      <Grid container sx={styles.container}>
+        <Grid item md={6} xs={12} sx={styles.logo}>
+          <LogoIcon stroke={theme.palette.text[10]} width={121} height={104} />
+          <Typography sx={styles.textLogo} fontSize={40}>
+            BioDoc
+          </Typography>
 
-          <Typography
-            fontFamily="Sansita Swashed"
-            fontSize={48}
-            fontWeight={400}
-            textAlign="center"
-            color="text.10"
-            mt={4}
-          >
+          <Typography sx={styles.textLogo} fontSize={48} mt={4}>
             Welcome to a healthier you powered by <br /> BioDoc
           </Typography>
-        </Box>
+        </Grid>
 
-        <Box
-          variant="div"
-          flex={1}
+        <Grid
+          item
+          md={6}
+          xs={12}
           display="flex"
           justifyContent="center"
           alignItems="center"
@@ -187,7 +193,7 @@ const Login = () => {
               title="Login with Google"
               variant="contained"
               fullWidth
-              onClick={() => loginWithGoogle()}
+              onClick={handleGoogleLogin}
             >
               <img
                 src={Google}
@@ -211,12 +217,13 @@ const Login = () => {
 
             <ButtonText
               title="Login as Doctor"
-              sx={{ display: "flex", justifyContent: "center", mt: 4 }}
+              sx={styles.loginDocBtn}
+              onClick={() => console.log("Am I doctor?")}
             />
           </Box>
-        </Box>
-      </Box>
-    </Box>
+        </Grid>
+      </Grid>
+    </Grid>
   );
 };
 

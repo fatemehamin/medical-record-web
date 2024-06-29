@@ -6,17 +6,19 @@ const style = (typeProps, disable, color) => ({
   display: "flex",
   alignItems: "center",
   color: color ? color : disable ? "text.100" : "primary.main",
+  background: "none",
+  border: "none",
+  padding: 0,
+  font: "inherit",
+  cursor: disable ? "default" : "pointer",
   "&:hover": !disable && {
-    cursor: "pointer",
     color: theme.palette.primary[700],
-    "& .iconBtn": {
-      [typeProps]: theme.palette.primary[700],
-    },
+    "& .iconBtn": { [typeProps]: theme.palette.primary[700] },
   },
 });
 
 const ButtonText = ({
-  Icon = () => {},
+  Icon,
   title,
   typeProps,
   disable,
@@ -24,17 +26,16 @@ const ButtonText = ({
   color = "primary.main",
   onClick = () => {},
 }) => {
-  const initOnClick = () => (disable ? {} : onClick());
-
   return (
     <Box
-      variant="p"
-      sx={{ ...style(typeProps, disable, color), ...sx }}
       gap={1}
-      onClick={initOnClick}
+      component="button"
+      sx={{ ...style(typeProps, disable, color), ...sx }}
+      onClick={onClick}
+      disabled={disable}
     >
-      <Icon size={24} />
-      <Typography fontSize={16} fontWeight={500}>
+      {Icon && <Icon size={24} />}
+      <Typography fontSize={16} fontWeight={500} component="span">
         {title}
       </Typography>
     </Box>

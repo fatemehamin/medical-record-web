@@ -1,10 +1,11 @@
 import { Button } from "@mui/material";
-import React from "react";
+import React, { forwardRef } from "react";
 
-const Btn = ({ title, sx, ...props }) => {
+const Btn = forwardRef(({ title, sx, ...props }, ref) => {
   return (
     <Button
       {...props}
+      ref={ref}
       sx={{
         "&.Mui-disabled": { backgroundColor: "text.50" },
         borderRadius: 2,
@@ -16,6 +17,6 @@ const Btn = ({ title, sx, ...props }) => {
       {title}
     </Button>
   );
-};
+});
 
 export default Btn;

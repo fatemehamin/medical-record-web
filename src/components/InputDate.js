@@ -31,3 +31,20 @@ const InputDate = forwardRef(({ title, ...props }, ref) => {
 });
 
 export default InputDate;
+
+//  <Controller
+//     name="date"
+//     control={control}
+//       render={({ field }) => (
+//         <LocalizationProvider dateAdapter={AdapterMomentJalaali}>
+//     //       <DatePicker
+//     //         {...field}
+//     //         mask="____/__/__"
+//     //         // value={state.basic.BirthDate}
+//     //         // onChange={onChangeBirthDate}
+//     //         label={"date"}
+//     //         // renderInput={(params) => <Input bgColor={bgColor} {...params} />}
+//     //       />
+//         </LocalizationProvider>
+//       )}
+//   />

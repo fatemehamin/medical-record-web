@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import moment from "moment-jalaali";
 import Topbar from "../components/Topbar";
 import Toolbar from "../components/Toolbar";
 import theme from "../Theme";
 import ButtonText from "../components/ButtonText";
+import CollapesItem from "../components/CollapesItem";
 import NoDocPic from "../assets/no_doc_pic.png";
 import { useDispatch, useSelector } from "react-redux";
 import { ReactComponent as Backward } from "../assets/Icons/backward.svg";
@@ -11,270 +11,18 @@ import { ReactComponent as SelectIcon } from "../assets/Icons/Select.svg";
 import { searchDocs } from "../features/medicalDoc/medicalDocSlice";
 import { FiPlusCircle, FiSearch, FiShare2 } from "react-icons/fi";
 import { LuTrash2 } from "react-icons/lu";
-import {
-  Box,
-  Checkbox,
-  Collapse,
-  Grid,
-  Menu,
-  MenuItem,
-  Typography,
-} from "@mui/material";
+import { Box, Grid, Typography } from "@mui/material";
 import {
   deleteMedicalDocs,
   fetchMedicalDocs,
   shareMedicalDocs,
 } from "../features/medicalDoc/action";
 import {
-  ExpandLessRounded as Down,
-  ExpandMoreRounded as Up,
-  MoreVertRounded,
-} from "@mui/icons-material";
-import {
   ModalAddDoc,
   ModalDeleteDoc,
   ModalSearch,
   ModalShare,
 } from "../components/FormModals";
-import MenuComponent from "../components/menu";
-import { useNavigate } from "react-router-dom";
-
-const styles = {
-  collapseContainer: {
-    display: "flex",
-    borderRadius: 2,
-    border: "1px solid",
-    margin: "5px 0px",
-    minHeight: 42,
-    padding: "5px 16px",
-    alignItems: "center",
-    justifyContent: "space-between",
-    cursor: "pointer",
-  },
-  collapse: {
-    bgcolor: theme.palette.tritary[100],
-    border: `${theme.palette.tritary.main} 1px solid`,
-    m: "0px 30px",
-    borderRadius: 1,
-  },
-  headerTable: {
-    display: "flex",
-    borderBottom: `${theme.palette.tritary.main} 1px solid`,
-    p: 1,
-  },
-  dataTable: {
-    borderBottom: `${theme.palette.tritary.main} 1px solid`,
-    p: "1px 8px",
-    display: "flex",
-    alignItems: "center",
-    minHeight: 42,
-  },
-  menu: {
-    ".MuiPaper-root": {
-      boxShadow: "0px 0px 10px 5px #878b9410",
-      backgroundColor: "tritary.50",
-      borderRadius: "12px",
-      p: 1,
-    },
-  },
-  moreIcon: { flex: 1, cursor: "pointer" },
-  btn: { borderRadius: 2, width: 150 },
-};
-
-const CollapesItem = ({ tag, docs, setSelectList, selectList, isSelect }) => {
-  const [collapsed, setCollasped] = useState(false);
-  const [unSelectItemGroup, setUnSelectItemGroup] = useState(docs);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [currentDocId, setCurrentDocId] = useState(null);
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!isSelect) {
-      setUnSelectItemGroup(docs);
-    }
-  }, [isSelect]);
-
-  const handleClick = (event, id) => {
-    event.stopPropagation();
-    setAnchorEl(event.currentTarget);
-    setCurrentDocId(id);
-  };
-
-  const handleClose = () => setAnchorEl(null);
-
-  const handleMultiSelected = (event) => {
-    const { checked } = event.target;
-
-    const newListDoc = checked
-      ? [...selectList, ...unSelectItemGroup]
-      : selectList.filter((doc) => doc.tag !== tag);
-
-    setUnSelectItemGroup(checked ? [] : docs);
-
-    setSelectList(newListDoc);
-  };
-
-  const handleSelected = (event) => {
-    const { checked } = event.target;
-    const id = JSON.parse(event.target.id);
-
-    const newListDoc = checked
-      ? [...selectList, docs.find((doc) => doc.id === id)]
-      : selectList.filter((doc) => doc.id !== id);
-
-    const newUnSelect = checked
-      ? unSelectItemGroup.filter((doc) => doc.id !== id)
-      : [...unSelectItemGroup, docs.find((doc) => doc.id === id)];
-
-    setUnSelectItemGroup(newUnSelect);
-
-    setSelectList(newListDoc);
-  };
-
-  const toggleCollapse = () => setCollasped((c) => !c);
-
-  const toggleCheckbox = isSelect
-    ? { opacity: 1 }
-    : { opacity: 0, position: "absolute" };
-
-  const [openModalDelete, setOpenModalDelete] = useState(false);
-  const [openModalShare, setOpenModalShare] = useState(false);
-
-  const handleOpenModalDelete = () => {
-    handleClose();
-    setOpenModalDelete((a) => !a);
-    // setTimeout(() => {
-    //   handleClose();
-    // }, 1000);
-  };
-
-  const dispatch = useDispatch();
-
-  const handleOpenModalShare = () => {
-    setTimeout(() => {
-      setOpenModalShare(true);
-    }, 300);
-  };
-
-  const handleCloseModalDelete = () => setOpenModalDelete(false);
-  const handleCloseModalShare = () => setOpenModalShare(false);
-
-  const handleDelete = () => dispatch(deleteMedicalDocs([currentDocId]));
-  const handleShare = () => {};
-
-  return (
-    <>
-      <Box
-        variant="div"
-        className="collapse-container"
-        sx={styles.collapseContainer}
-        borderColor="primary.main"
-        onClick={toggleCollapse}
-      >
-        <Box variant="div" display="flex" alignItems="center">
-          <Checkbox
-            disabled={!isSelect}
-            sx={toggleCheckbox}
-            color="primary"
-            onClick={(event) => event.stopPropagation()}
-            checked={!unSelectItemGroup.length}
-            onChange={handleMultiSelected}
-          />
-
-          <Typography fontWeight={500} fontSize={20} color="text.main">
-            {tag}
-          </Typography>
-        </Box>
-
-        {collapsed ? <Down color="text.main" /> : <Up color="text.main" />}
-      </Box>
-
-      <Collapse in={collapsed} sx={styles.collapse}>
-        <Box variant="div" sx={styles.headerTable}>
-          <Typography color="text.main" fontWeight={500} fontSize={16} flex={3}>
-            File Name
-          </Typography>
-
-          <Typography color="text.main" fontWeight={500} fontSize={16} flex={3}>
-            Modified Date
-          </Typography>
-
-          <Typography
-            color="text.main"
-            fontWeight={500}
-            fontSize={16}
-            flex={1}
-            textAlign="center"
-          >
-            Action
-          </Typography>
-        </Box>
-
-        {docs.map((doc, index) => (
-          <Box
-            key={index}
-            variant="div"
-            sx={styles.dataTable}
-            onClick={() => navigate(`/medicalDocument/${doc.id}`)}
-          >
-            <Typography
-              color="text.main"
-              fontWeight={400}
-              fontSize={16}
-              flex={3}
-            >
-              <Checkbox
-                disabled={!isSelect}
-                color="primary"
-                onClick={(event) => event.stopPropagation()}
-                sx={toggleCheckbox}
-                id={JSON.stringify(doc.id)}
-                checked={!unSelectItemGroup.find((d) => d.id == doc.id)}
-                onChange={handleSelected}
-              />
-              {doc.name}
-            </Typography>
-
-            <Typography
-              color="text.main"
-              fontWeight={400}
-              fontSize={16}
-              flex={3}
-            >
-              {moment(doc.date).format("DD MMM YYYY")}
-            </Typography>
-
-            <MoreVertRounded
-              sx={styles.moreIcon}
-              onClick={(e) => handleClick(e, doc.id)}
-            />
-          </Box>
-        ))}
-        {!!anchorEl && (
-          <MenuComponent
-            anchorEl={anchorEl}
-            handleClose={handleClose}
-            id={currentDocId}
-          />
-        )}
-
-        <ModalDeleteDoc
-          open={openModalDelete}
-          handleClose={handleCloseModalDelete}
-          count={1}
-          handleDelete={handleDelete}
-        />
-
-        {/* <ModalShare
-        open={openModalShare}
-        handleClose={handleCloseModalShare}
-        handleShare={handleShare}
-      /> */}
-      </Collapse>
-    </>
-  );
-};
 
 const NoDocsComponent = ({ handleOpenAddDoc }) => (
   <Grid
@@ -358,8 +106,8 @@ const MedicalDocuments = () => {
     handleCancelSelect();
   };
 
-  const handleShare = () => {
-    dispatch(shareMedicalDocs(selectList));
+  const handleShare = (email) => {
+    dispatch(shareMedicalDocs({ data: selectList.map((v) => v.id), email }));
     setOpenModalShare(false);
     handleCancelSelect();
   };

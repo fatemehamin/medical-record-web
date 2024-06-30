@@ -1,30 +1,18 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as Yup from "yup";
 import Input from "../components/Input";
 import BasicModal from "../components/Modal";
 import DividerOR from "./DividerOR";
-import theme from "../Theme";
-import JPG from "../assets/Icons/jpg.png";
 import InputDate from "./InputDate";
-import {
-  Avatar,
-  BottomNavigationAction,
-  Box,
-  Button,
-  MenuItem,
-  Typography,
-} from "@mui/material";
+import FileUploadComponent from "./FileUploadComponent";
+import Btn from "./Btn";
+import dayjs from "dayjs";
+import { Avatar, Box, MenuItem, Typography } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useDispatch, useSelector } from "react-redux";
-import { addMedicalDocs } from "../features/medicalDoc/action";
-import { LuUpload } from "react-icons/lu";
-import { FiX } from "react-icons/fi";
-import { ReactComponent as PDF } from "../assets/Icons/pdf.svg";
+import { editMedicalDocs } from "../features/medicalDoc/action";
 import { fetchDoctorsAccepted } from "../features/doctors/action";
-import { useDropzone } from "react-dropzone";
-import FileUploadComponent from "./FileUploadComponent";
-import Btn from "./Btn";
 
 const styles = {
   btn: { width: 150 },
@@ -51,15 +39,14 @@ const styles = {
   },
 };
 
-export const ModalAddDoc = ({ open, handleClose }) => {
+export const ModalAddDoc = ({ open, handleClose, handleAdd }) => {
   const [file, setFile] = useState(null);
   const [allFieldsFilled, setAllFieldsFilled] = useState(false);
 
   const { AllTags } = useSelector((state) => state.medicalDoc);
 
-  const dispatch = useDispatch();
-
-  const urlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
+  const urlRegex =
+    /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$|^$/;
 
   const addDocumentSchema = Yup.object().shape({
     url: Yup.string().trim().matches(urlRegex, "Please enter a valid URL"),
@@ -67,20 +54,6 @@ export const ModalAddDoc = ({ open, handleClose }) => {
     name: Yup.string().trim().required(),
     date: Yup.date().required(),
   });
-
-  const onSubmit = (data) => {
-    const { tag, url, name, date } = data;
-    const args = {
-      file: !!file ? file.binaryFile : "",
-      url,
-      tag,
-      name,
-      date: date.toISOString().slice(0, 10),
-    };
-
-    dispatch(addMedicalDocs(args));
-    handleClose();
-  };
 
   const {
     control,
@@ -115,7 +88,7 @@ export const ModalAddDoc = ({ open, handleClose }) => {
           component="form"
           display="flex"
           flexDirection="column"
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={handleSubmit((data, event) => handleAdd(data, event, file))}
           gap={1}
         >
           <FileUploadComponent file={file} setFile={setFile} />
@@ -176,13 +149,21 @@ export const ModalAddDoc = ({ open, handleClose }) => {
             render={({ field }) => <InputDate {...field} title="Date:" />}
           />
 
-          <Btn disabled={!allFieldsFilled} type="submit" variant="contained">
-            upload
-          </Btn>
+          <Btn
+            disabled={!allFieldsFilled}
+            type="submit"
+            variant="contained"
+            name="regularUpload"
+            title="upload"
+          />
 
-          <Btn disabled={!getValues("url") || file} variant="contained">
-            Upload and extract data
-          </Btn>
+          <Btn
+            type="submit"
+            disabled={!getValues("url") && file == null}
+            variant="contained"
+            name="extractUpload"
+            title="Upload and extract data"
+          />
         </Box>
       </BasicModal>
     </>
@@ -260,9 +241,11 @@ export const ModalShare = ({ open, handleClose, handleShare }) => {
     dispatch(fetchDoctorsAccepted());
   }, []);
 
+  const onChangeEmail = (e) => setEmail(e.target.value);
+
   return (
     <BasicModal open={open} handleClose={handleClose} title="Share files">
-      <Input title="Enter the E-mail:" value={email} onChange={setEmail} />
+      <Input title="Enter the E-mail:" value={email} onChange={onChangeEmail} />
 
       {doctorsAccepted?.length > 0 && (
         <>
@@ -295,7 +278,7 @@ export const ModalShare = ({ open, handleClose, handleShare }) => {
         variant="contained"
         type="submit"
         fullWidth
-        onClick={handleShare}
+        onClick={() => handleShare(email)}
         sx={{ mt: 2 }}
       >
         Share
@@ -330,68 +313,46 @@ export const ModalDeleteDoc = ({ open, handleClose, count, handleDelete }) => {
   );
 };
 
-//  <Controller
-//     name="date"
-//     control={control}
-//       render={({ field }) => (
-//         <LocalizationProvider dateAdapter={AdapterMomentJalaali}>
-//     //       <DatePicker
-//     //         {...field}
-//     //         mask="____/__/__"
-//     //         // value={state.basic.BirthDate}
-//     //         // onChange={onChangeBirthDate}
-//     //         label={"date"}
-//     //         // renderInput={(params) => <Input bgColor={bgColor} {...params} />}
-//     //       />
-//         </LocalizationProvider>
-//       )}
-//   />
 export const ModalEditDoc = ({ open, handleClose }) => {
-  const [file, setFile] = useState(null);
-  const { AllTags } = useSelector((state) => state.medicalDoc);
-
-  const urlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
-
-  const addDocumentSchema = Yup.object().shape({
-    url: Yup.string().trim().matches(urlRegex, "Please enter a valid URL"),
-    tag: Yup.string().required("File type is required"),
-    name: Yup.string().trim().required("Name is required"),
-    date: Yup.date().required("Date is required"),
-  });
+  const { currentDoc, AllTags } = useSelector((state) => state.medicalDoc);
 
   const dispatch = useDispatch();
 
+  const editDocumentSchema = Yup.object().shape({
+    tag: Yup.string().required(),
+    name: Yup.string().trim().required(),
+    date: Yup.date().required(),
+  });
+
+  const {
+    control,
+    handleSubmit,
+    formState: { isValid, isDirty },
+  } = useForm({
+    resolver: yupResolver(editDocumentSchema),
+    defaultValues: {
+      name: currentDoc.name.split("/")[0],
+      tag: currentDoc.tag,
+      date: dayjs(currentDoc.date),
+    },
+  });
+
   const onSubmit = (data) => {
-    const { tag, url, name, date } = data;
+    const { tag, name, date } = data;
     const args = {
-      file: !!file ? file.binaryFile : "",
-      url,
+      id: currentDoc.id,
       tag,
       name,
       date: date.toISOString().slice(0, 10),
     };
 
-    dispatch(addMedicalDocs(args));
+    dispatch(editMedicalDocs(args));
     handleClose();
   };
 
-  const {
-    control,
-    handleSubmit,
-    getValues,
-    formState: { errors, isValid },
-  } = useForm({
-    resolver: yupResolver(addDocumentSchema),
-    defaultValues: { name: "", tag: "" },
-  });
-
   return (
     <>
-      <BasicModal
-        title="Add New Document"
-        open={open}
-        handleClose={handleClose}
-      >
+      <BasicModal title="Edit" open={open} handleClose={handleClose}>
         <Box
           component="form"
           display="flex"
@@ -402,30 +363,18 @@ export const ModalEditDoc = ({ open, handleClose }) => {
           <Controller
             name="name"
             control={control}
-            render={({ field }) => (
-              <Input
-                {...field}
-                title="Name:"
-                placeholder="Give a name to your new document"
-                error={!!errors.name}
-                helperText={errors.name ? errors.name.message : ""}
-              />
-            )}
+            render={({ field }) => <Input {...field} title="Name:" />}
           />
 
           <Controller
             name="tag"
             control={control}
-            defaultValue=""
             render={({ field }) => (
               <Input
                 {...field}
                 title="File Type:"
                 select
                 isPlaceholderSelect={field.value === ""}
-                defaultValue=""
-                error={!!errors.tag}
-                helperText={errors.tag ? errors.tag.message : ""}
               >
                 <MenuItem disabled value="" sx={{ display: "none" }}>
                   Choose file type
@@ -442,28 +391,25 @@ export const ModalEditDoc = ({ open, handleClose }) => {
           <Controller
             name="date"
             control={control}
-            render={({ field }) => (
-              <InputDate
-                {...field}
-                error={!!errors.date}
-                helperText={errors.date ? errors.date.message : ""}
-                title="Date:"
-              />
-            )}
+            render={({ field }) => <InputDate {...field} title="Date:" />}
           />
 
-          <Button
-            // disabled={!isValid}
-            type="submit"
-            variant="contained"
-            sx={{ mt: 1 }}
-          >
-            Save
-          </Button>
+          <Box display="flex" gap={1} justifyContent="space-between">
+            <Btn
+              disabled={!isValid || !isDirty}
+              variant="contained"
+              sx={{ mt: 1, width: 150 }}
+              title="Save"
+              type="submit"
+            />
 
-          <Button disabled={!getValues("url") || file} variant="contained">
-            Cancel
-          </Button>
+            <Btn
+              variant="outlined"
+              sx={{ mt: 1, width: 150 }}
+              onClick={handleClose}
+              title="Cancel"
+            />
+          </Box>
         </Box>
       </BasicModal>
     </>

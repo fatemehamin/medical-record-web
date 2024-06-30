@@ -1,8 +1,9 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import { login, signup } from "./action";
 
 const initialState = {
   username: "",
+  profile: null,
   email: "",
   isAuthentication: false,
   error: null,
@@ -24,7 +25,7 @@ const authSlice = createSlice({
     });
     builder.addCase(login.rejected, (state, action) => {
       state.isLoading = false;
-      state.error = action.payload || "An unexpected error occurred";
+      state.error = action.payload.code || "An unexpected error occurred";
     });
     builder.addCase(signup.pending, (state) => {
       state.isLoading = true;

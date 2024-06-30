@@ -1,2 +1,27 @@
-.App {
+path {
+  stroke: inherit;
+  fill: inherit;
+}
+.page-container {
+  border-radius: 12px;
+  box-shadow: 0px 0px 10px 5px #878b9410;
+  margin: 3px;
+  padding: 18px;
+}
+/* width */
+::-webkit-scrollbar {
+  width: 3px;
+}
+/* Track */
+::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 5px 0px;
+}
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #8c8d8f;
+}
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }

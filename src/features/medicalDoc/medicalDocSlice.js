@@ -2,8 +2,11 @@ import { createSlice } from "@reduxjs/toolkit";
 import {
   addMedicalDocs,
   deleteMedicalDocs,
+  downloadMedicalDocs,
+  fetchItemMedicalDoc,
   fetchMedicalDocs,
   fetchOCR,
+  shareMedicalDocs,
 } from "./action";
 
 const initialState = {
@@ -22,7 +25,73 @@ const initialState = {
   ],
   docs: [],
   tags: [],
-  tables: [],
+  currentDoc: null,
+  tables: [
+    [
+      ["personal", "", ""],
+      ["age", "12", "p"],
+      ["name", "fatm", "yryr"],
+      ["favorit", "read", "ytytry"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+    ],
+    [
+      ["personal", "", ""],
+      ["age", "12", "p"],
+      ["name", "fatm", "yryr"],
+      ["favorit", "read", "ytytry"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+      ["jop", "polictrrtr rtrtrrt rtrtrtrt rtrtrtr rttrtre", "iououi"],
+    ],
+  ],
   isLoading: false,
   error: null,
 };
@@ -35,9 +104,9 @@ const medicalDocSlice = createSlice({
       const { name, startDate, endDate } = action.payload;
 
       const newDocs = state.docs.filter((doc) => {
-        const dateDoc = new Date(doc.result_date);
+        const dateDoc = new Date(doc.date);
         return name
-          ? doc.test_name === name
+          ? doc.name === name
           : startDate.$d < dateDoc && dateDoc < endDate.$d;
       });
 
@@ -57,6 +126,7 @@ const medicalDocSlice = createSlice({
       const { tags, files } = action.payload;
       state.docs = files;
       state.tags = tags;
+      state.currentDoc = null;
       state.isLoading = false;
     });
     builder.addCase(fetchMedicalDocs.rejected, (state, action) => {
@@ -98,6 +168,16 @@ const medicalDocSlice = createSlice({
       state.isLoading = false;
       state.error = action.payload;
     });
+    builder.addCase(shareMedicalDocs.pending, (state) => {
+      state.isLoading = true;
+    });
+    builder.addCase(shareMedicalDocs.fulfilled, (state) => {
+      state.isLoading = false;
+    });
+    builder.addCase(shareMedicalDocs.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
     builder.addCase(fetchOCR.pending, (state) => {
       state.isLoading = true;
     });
@@ -106,6 +186,27 @@ const medicalDocSlice = createSlice({
       state.isLoading = false;
     });
     builder.addCase(fetchOCR.rejected, (state, action) => {
+      state.error = action.payload;
+      state.isLoading = false;
+    });
+    builder.addCase(fetchItemMedicalDoc.pending, (state) => {
+      state.isLoading = true;
+    });
+    builder.addCase(fetchItemMedicalDoc.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.currentDoc = action.payload;
+    });
+    builder.addCase(fetchItemMedicalDoc.rejected, (state, action) => {
+      state.error = action.payload;
+      state.isLoading = false;
+    });
+    builder.addCase(downloadMedicalDocs.pending, (state) => {
+      state.isLoading = true;
+    });
+    builder.addCase(downloadMedicalDocs.fulfilled, (state) => {
+      state.isLoading = false;
+    });
+    builder.addCase(downloadMedicalDocs.rejected, (state, action) => {
       state.error = action.payload;
       state.isLoading = false;
     });

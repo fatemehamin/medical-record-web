@@ -1,0 +1,25 @@
+.side-bar-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 70px 10px 30px;
+}
+.menu {
+  padding: 0px 8px;
+}
+.sub-menu a {
+  border-radius: 12px;
+  margin: 10px 0px;
+  padding: 5px !important;
+}
+.sub-menu-text {
+  font-weight: 700 !important;
+  font-size: 16px !important;
+}
+.side-bar-menu-item {
+  margin: 1px;
+}
+.ps-menu-button:hover:not(.ps-active) {
+  border: 1px solid #ffffff45 !important;
+  background-color: #6076a7 !important;
+}

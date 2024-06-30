@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import moment from "moment-jalaali";
 import Topbar from "../components/Topbar";
 import Toolbar from "../components/Toolbar";
@@ -15,6 +15,7 @@ import {
   Box,
   Checkbox,
   Collapse,
+  Grid,
   Menu,
   MenuItem,
   Typography,
@@ -22,6 +23,7 @@ import {
 import {
   deleteMedicalDocs,
   fetchMedicalDocs,
+  shareMedicalDocs,
 } from "../features/medicalDoc/action";
 import {
   ExpandLessRounded as Down,
@@ -136,6 +138,31 @@ const CollapesItem = ({ tag, docs, setSelectList, selectList, isSelect }) => {
     ? { opacity: 1 }
     : { opacity: 0, position: "absolute" };
 
+  const [openModalDelete, setOpenModalDelete] = useState(false);
+  const [openModalShare, setOpenModalShare] = useState(false);
+
+  const handleOpenModalDelete = () => {
+    handleClose();
+    setOpenModalDelete((a) => !a);
+    // setTimeout(() => {
+    //   handleClose();
+    // }, 1000);
+  };
+
+  const dispatch = useDispatch();
+
+  const handleOpenModalShare = () => {
+    setTimeout(() => {
+      setOpenModalShare(true);
+    }, 300);
+  };
+
+  const handleCloseModalDelete = () => setOpenModalDelete(false);
+  const handleCloseModalShare = () => setOpenModalShare(false);
+
+  const handleDelete = () => dispatch(deleteMedicalDocs([currentDocId]));
+  const handleShare = () => {};
+
   return (
     <>
       <Box
@@ -206,7 +233,7 @@ const CollapesItem = ({ tag, docs, setSelectList, selectList, isSelect }) => {
                 checked={!unSelectItemGroup.find((d) => d.id == doc.id)}
                 onChange={handleSelected}
               />
-              {doc.test_name}
+              {doc.name}
             </Typography>
 
             <Typography
@@ -215,7 +242,7 @@ const CollapesItem = ({ tag, docs, setSelectList, selectList, isSelect }) => {
               fontSize={16}
               flex={3}
             >
-              {moment(doc.result_date).format("DD MMM YYYY")}
+              {moment(doc.date).format("DD MMM YYYY")}
             </Typography>
 
             <MoreVertRounded
@@ -231,23 +258,38 @@ const CollapesItem = ({ tag, docs, setSelectList, selectList, isSelect }) => {
             id={currentDocId}
           />
         )}
+
+        <ModalDeleteDoc
+          open={openModalDelete}
+          handleClose={handleCloseModalDelete}
+          count={1}
+          handleDelete={handleDelete}
+        />
+
+        {/* <ModalShare
+        open={openModalShare}
+        handleClose={handleCloseModalShare}
+        handleShare={handleShare}
+      /> */}
       </Collapse>
     </>
   );
 };
 
 const NoDocsComponent = ({ handleOpenAddDoc }) => (
-  <Box
-    variant="div"
+  <Grid
+    container
     className="page-container"
     flex={1}
     bgcolor="text.light"
-    display="flex"
     flexDirection="column"
     alignItems="center"
     justifyContent="center"
   >
-    <img src={NoDocPic} width={265} />
+    <Grid width={{ md: 256, xs: 100 }}>
+      <img src={NoDocPic} width={"100%"} />
+    </Grid>
+
     <Typography fontSize={20} fontWeight={400} p={2} color="text.main">
       No documents have been added yet
     </Typography>
@@ -257,7 +299,7 @@ const NoDocsComponent = ({ handleOpenAddDoc }) => (
       title="Add New Document"
       color="primary.main"
     />
-  </Box>
+  </Grid>
 );
 
 const MedicalDocuments = () => {
@@ -276,18 +318,6 @@ const MedicalDocuments = () => {
     dispatch(fetchMedicalDocs());
   }, []);
 
-  const handleOpenAddDoc = () => setOpenModalAddDoc(true);
-  const handleCloseAddDoc = () => setOpenModalAddDoc(false);
-
-  const handleOpenSearch = () => setOpenModalSearch(true);
-  const handleCloseSearch = () => setOpenModalSearch(false);
-
-  const handleOpenDelete = () => setOpenModalDeleteDoc(true);
-  const handleCloseDelete = () => setOpenModalDeleteDoc(false);
-
-  const handleOpenShare = () => setOpenModalShare(true);
-  const handleCloseShare = () => setOpenModalShare(false);
-
   const groupDocs = useMemo(
     () =>
       tags?.map((tag) => ({
@@ -297,9 +327,21 @@ const MedicalDocuments = () => {
     [tags, docs]
   );
 
+  const handleOpenAddDoc = useCallback(() => setOpenModalAddDoc(true), []);
+  const handleCloseAddDoc = useCallback(() => setOpenModalAddDoc(false), []);
+
+  const handleOpenSearch = useCallback(() => setOpenModalSearch(true), []);
+  const handleCloseSearch = useCallback(() => setOpenModalSearch(false), []);
+
+  const handleOpenDelete = useCallback(() => setOpenModalDeleteDoc(true), []);
+  const handleCloseDelete = useCallback(() => setOpenModalDeleteDoc(false), []);
+
+  const handleOpenShare = useCallback(() => setOpenModalShare(true), []);
+  const handleCloseShare = useCallback(() => setOpenModalShare(false), []);
+
   const handleSearch = (data) => {
     dispatch(searchDocs(data));
-    handleCloseSearch();
+    setOpenModalSearch(false);
   };
 
   const handleSelect = () => setIsSelect((s) => !s);
@@ -312,108 +354,111 @@ const MedicalDocuments = () => {
   const handleDelete = () => {
     const arg = selectList.map((doc) => doc.id);
     dispatch(deleteMedicalDocs(arg));
-    handleCloseDelete();
+    setOpenModalDeleteDoc(false);
     handleCancelSelect();
   };
 
   const handleShare = () => {
-    handleCloseShare();
+    dispatch(shareMedicalDocs(selectList));
+    setOpenModalShare(false);
     handleCancelSelect();
   };
 
   return (
-    <Box variant="div" display="flex" flexDirection="column" flex={1} p={3}>
+    <Grid container flexDirection="column" wrap="nowrap" flex={1} p={3}>
       <Topbar title="Medical Documents" />
 
-      {docs.length ? (
-        <>
-          <Toolbar
-            className="page-container"
-            title={`${docs.length} Documents Total`}
-          >
-            {isSelect ? (
-              <>
-                <ButtonText
-                  title="Share"
-                  Icon={FiShare2}
-                  onClick={handleOpenShare}
-                  disable={!selectList.length}
-                />
+      <Grid container flexDirection="column " flex={1}>
+        {docs.length ? (
+          <>
+            <Toolbar
+              className="page-container"
+              title={`${docs.length} Documents Total`}
+            >
+              {isSelect ? (
+                <>
+                  <ButtonText
+                    title="Share"
+                    Icon={FiShare2}
+                    onClick={handleOpenShare}
+                    disable={!selectList.length}
+                  />
 
-                <ButtonText
-                  title="Delete"
-                  Icon={LuTrash2}
-                  onClick={handleOpenDelete}
-                  disable={!selectList.length}
-                />
+                  <ButtonText
+                    title="Delete"
+                    Icon={LuTrash2}
+                    onClick={handleOpenDelete}
+                    disable={!selectList.length}
+                  />
 
-                <ButtonText
-                  title="Cancel"
-                  typeProps="stroke"
-                  onClick={handleCancelSelect}
-                  Icon={() => (
-                    <Backward
-                      stroke={theme.palette.primary.main}
-                      width={24}
-                      className="iconBtn"
-                    />
-                  )}
-                />
-              </>
-            ) : (
-              <>
-                <ButtonText
-                  title="Select"
-                  typeProps="stroke"
-                  color="text.100"
-                  onClick={handleSelect}
-                  Icon={() => (
-                    <SelectIcon
-                      stroke={theme.palette.text[100]}
-                      width={24}
-                      className="iconBtn"
-                    />
-                  )}
-                />
+                  <ButtonText
+                    title="Cancel"
+                    typeProps="stroke"
+                    onClick={handleCancelSelect}
+                    Icon={() => (
+                      <Backward
+                        stroke={theme.palette.primary.main}
+                        width={24}
+                        className="iconBtn"
+                      />
+                    )}
+                  />
+                </>
+              ) : (
+                <>
+                  <ButtonText
+                    title="Select"
+                    typeProps="stroke"
+                    color="text.100"
+                    onClick={handleSelect}
+                    Icon={() => (
+                      <SelectIcon
+                        stroke={theme.palette.text[100]}
+                        width={24}
+                        className="iconBtn"
+                      />
+                    )}
+                  />
 
-                <ButtonText
-                  Icon={FiSearch}
-                  onClick={handleOpenSearch}
-                  title="Search"
-                  color="text.100"
-                />
+                  <ButtonText
+                    Icon={FiSearch}
+                    onClick={handleOpenSearch}
+                    title="Search"
+                    color="text.100"
+                  />
 
-                <ButtonText
-                  Icon={FiPlusCircle}
-                  onClick={handleOpenAddDoc}
-                  title="Add New Document"
-                  color="primary.main"
-                />
-              </>
-            )}
-          </Toolbar>
+                  <ButtonText
+                    Icon={FiPlusCircle}
+                    onClick={handleOpenAddDoc}
+                    title="Add New Document"
+                    color="primary.main"
+                  />
+                </>
+              )}
+            </Toolbar>
 
-          <Box
-            variant="div"
-            className="page-container"
-            flex={1}
-            bgcolor="text.light"
-          >
-            {groupDocs.map((group, index) => (
-              <CollapesItem
-                isSelect={isSelect}
-                key={index}
-                tag={group.tag}
-                docs={group.docs}
-                setSelectList={setSelectList}
-                selectList={selectList}
-              />
-            ))}
-          </Box>
-        </>
-      ) : (
-        <NoDocsComponent handleOpenAddDoc={handleOpenAddDoc} />
-      )}
+            <Box
+              variant="div"
+              className="page-container"
+              flex={1}
+              bgcolor="text.light"
+            >
+              {groupDocs.map((group, index) => (
+                <CollapesItem
+                  isSelect={isSelect}
+                  key={index}
+                  tag={group.tag}
+                  docs={group.docs}
+                  setSelectList={setSelectList}
+                  selectList={selectList}
+                />
+              ))}
+            </Box>
+          </>
+        ) : (
+          <NoDocsComponent handleOpenAddDoc={handleOpenAddDoc} />
+        )}
+      </Grid>
 
       <ModalAddDoc open={openModalAddDoc} handleClose={handleCloseAddDoc} />
 
@@ -435,7 +480,7 @@ const MedicalDocuments = () => {
         handleClose={handleCloseShare}
         handleShare={handleShare}
       />
-    </Box>
+    </Grid>
   );
 };
 

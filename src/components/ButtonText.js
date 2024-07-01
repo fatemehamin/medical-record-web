@@ -23,6 +23,7 @@ const ButtonText = ({
   typeProps,
   disable,
   sx,
+  sizeIcon = 24,
   color = "primary.main",
   onClick = () => {},
 }) => {
@@ -34,7 +35,7 @@ const ButtonText = ({
       onClick={onClick}
       disabled={disable}
     >
-      {Icon && <Icon size={24} />}
+      {Icon && <Icon size={sizeIcon} />}
       <Typography fontSize={16} fontWeight={500} component="span">
         {title}
       </Typography>

@@ -27,6 +27,46 @@ export const addMedicalDocs = createAsyncThunk(
   }
 );
 
+export const addMedicalDocsOCR = createAsyncThunk(
+  "medicalDoc/addMedicalDocsOCR",
+  async ({ file, url, tag, name, date }) => {
+    const formData = new FormData();
+
+    formData.append("result_file", file);
+    formData.append("result_file_link", url);
+    formData.append("tag", tag);
+    formData.append("test_name", name);
+    formData.append("date_field", date);
+    formData.append("upload_ocr", "");
+
+    const res = await axiosAPI.post("offline_data/upload_test/", formData);
+
+    return {
+      id: res.data.id,
+      filetable: res.data.file_tables,
+      tag,
+      name,
+      date,
+    };
+  }
+);
+
+export const editMedicalDocs = createAsyncThunk(
+  "medicalDoc/editMedicalDocs",
+  async ({ id, name, date, tag }) => {
+    const formData = new FormData();
+
+    formData.append("file_id", id);
+    formData.append("test_name", name);
+    formData.append("date_field", date);
+    formData.append("tag", tag);
+    formData.append("doc_edit", "");
+
+    await axiosAPI.post("offline_data/med_doc/", formData);
+    return { id, name, date, tag };
+  }
+);
+
 export const deleteMedicalDocs = createAsyncThunk(
   "medicalDoc/deleteMedicalDocs",
   async (result_id) => {
@@ -40,81 +80,54 @@ export const deleteMedicalDocs = createAsyncThunk(
   }
 );
 
-export const editMedicalDocs = createAsyncThunk(
-  "medicalDoc/editMedicalDocs",
-  async ({ file_id, test_name, date_field, tag }) => {
-    const formData = new FormData();
-
-    formData.append("file_id", file_id);
-    formData.append("test_name", test_name);
-    formData.append("date_field", date_field);
-    formData.append("tag", tag);
-    formData.append("doc_edit", "");
-
-    await axiosAPI.post("offline_data/med_doc/", formData);
-    return { file_id, test_name, date_field, tag };
-  }
-);
-
 export const shareMedicalDocs = createAsyncThunk(
   "medicalDoc/shareMedicalDocs",
-  async ({ data, id }) => {
+  async ({ data, email }) => {
     const formData = new FormData();
 
     formData.append("data_id", data);
-    formData.append("user_id", id);
+    formData.append("user_id", email);
     formData.append("grant", "");
 
     await axiosAPI.post("offline_data/med_doc/", formData);
-
-    return { id, data };
   }
 );
-
-export const fetchOCR = createAsyncThunk("medicalDoc/fetchOCR", async () => {
-  const res = await axiosAPI.get("offline_data/med_doc/");
-  return res.data;
-});
 
 export const fetchItemMedicalDoc = createAsyncThunk(
   "medicalDoc/fetchItemMedicalDoc",
   async (id) => {
-    console.log(id);
     const res = await axiosAPI.get(`offline_data/med_doc/?view&file_id=${id}`);
     return res.data;
   }
 );
 
-export const downloadMedicalDocs = createAsyncThunk(
+export const downloadFileMedicalDocs = createAsyncThunk(
   "medicalDoc/downloadMedicalDocs",
   async (id) => {
     const res = await axiosAPI.get(
-      `offline_data/med_doc/?download&file_id=${id}`,
-      { responseType: "blob" }
+      `offline_data/med_doc/?download&file_id=${id}`
+      // { responseType: "blob" } //For Download Binarry Data need this config
     );
-    const blob = new Blob([res.data], { type: res.headers["content-type"] });
+
+    // Convert the base64 string to a Blob
+    const binaryData = atob(res.data.file_data);
+    const arrayBuffer = new ArrayBuffer(binaryData.length);
+    const uint8Array = new Uint8Array(arrayBuffer);
+
+    for (let i = 0; i < binaryData.length; i++) {
+      uint8Array[i] = binaryData.charCodeAt(i);
+    }
+
+    const blob = new Blob([uint8Array], { type: "application/octet-stream" });
+
+    // For Download Binarry Data do not need up config just need down config
+    // const blob = new Blob([res.data], { type: res.headers["content-type"] });
+
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
 
-    // const mimeTypeToExtension = {
-    //   "image/jpeg": ".jpg",
-    //   "image/png": ".png",
-    //   "application/pdf": ".pdf",
-    // };
-
-    // const contentTypeString = res.headers["content-type"];
-    // const contentDispositionString = res.headers["Content-Disposition"];
-    const contentDispositionString =
-      'attachment; filename="test_file/sample_IKjfa3H.png"';
-    // const contentType = contentTypeString.match(/['"]([^'"]+)['"]/)[1];
-    const filename = contentDispositionString.match(
-      /filename="(?:[^/]+\/)?([^"]+)"/
-    )[1];
-
-    // const extension = mimeTypeToExtension[contentType] || "";
-
-    // const filename = `file${extension}`;
+    const filename = res.data.file_name.split("/")[1];
 
     link.setAttribute("download", filename); // Set the desired filename
     document.body.appendChild(link);
@@ -123,3 +136,50 @@ export const downloadMedicalDocs = createAsyncThunk(
     window.URL.revokeObjectURL(url);
   }
 );
+
+export const addHighlight = createAsyncThunk(
+  "medicalDoc/addHighlight",
+  async ({ id, highlight }) => {
+    const formData = new FormData();
+
+    formData.append("file_id", id);
+    formData.append("content", highlight);
+    formData.append("add_highlight", "");
+
+    const res = await axiosAPI.post("offline_data/med_doc/", formData);
+
+    return { id: res.data.id, content: highlight, date: res.data.date };
+  }
+);
+
+export const deleteHighlight = createAsyncThunk(
+  "medicalDoc/deleteHighlight",
+  async ({ id, highlight_id }) => {
+    const formData = new FormData();
+
+    formData.append("file_id", id);
+    formData.append("highlight_id", highlight_id);
+    formData.append("remove_highlight", "");
+
+    await axiosAPI.post("offline_data/med_doc/", formData);
+
+    return highlight_id;
+  }
+);
+
+export const editOCR = createAsyncThunk(
+  "medicalDoc/editOCR",
+  async ({ tables, id }) => {
+    const formData = new FormData();
+
+    formData.append("newTables", tables);
+    formData.append("id", id);
+
+    await axiosAPI.post("offline_data/upload_test/", formData);
+  }
+);
+
+export const fetchOCR = createAsyncThunk("medicalDoc/fetchOCR", async () => {
+  const res = await axiosAPI.get("offline_data/med_doc/");
+  return res.data;
+});

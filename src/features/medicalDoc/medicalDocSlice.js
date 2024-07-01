@@ -1,8 +1,13 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
+  addHighlight,
   addMedicalDocs,
+  addMedicalDocsOCR,
+  deleteHighlight,
   deleteMedicalDocs,
-  downloadMedicalDocs,
+  downloadFileMedicalDocs,
+  editMedicalDocs,
+  editOCR,
   fetchItemMedicalDoc,
   fetchMedicalDocs,
   fetchOCR,
@@ -147,6 +152,34 @@ const medicalDocSlice = createSlice({
       state.isLoading = false;
       state.error = action.payload;
     });
+    builder.addCase(addMedicalDocsOCR.pending, (state) => {
+      state.isLoading = true;
+    });
+    builder.addCase(addMedicalDocsOCR.fulfilled, (state, action) => {
+      state.currentDoc = action.payload;
+      state.isLoading = false;
+    });
+    builder.addCase(addMedicalDocsOCR.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
+    builder.addCase(editMedicalDocs.pending, (state) => {
+      state.isLoading = true;
+    });
+    builder.addCase(editMedicalDocs.fulfilled, (state, action) => {
+      state.docs = state.docs.map((doc) =>
+        doc.id === action.payload.id ? action.payload : doc
+      );
+      state.currentDoc = {
+        filetable: state.currentDoc.filetable,
+        ...action.payload,
+      };
+      state.isLoading = false;
+    });
+    builder.addCase(editMedicalDocs.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
     builder.addCase(deleteMedicalDocs.pending, (state) => {
       state.isLoading = true;
     });
@@ -178,17 +211,6 @@ const medicalDocSlice = createSlice({
       state.isLoading = false;
       state.error = action.payload;
     });
-    builder.addCase(fetchOCR.pending, (state) => {
-      state.isLoading = true;
-    });
-    builder.addCase(fetchOCR.fulfilled, (state, action) => {
-      state.tables = action.payload;
-      state.isLoading = false;
-    });
-    builder.addCase(fetchOCR.rejected, (state, action) => {
-      state.error = action.payload;
-      state.isLoading = false;
-    });
     builder.addCase(fetchItemMedicalDoc.pending, (state) => {
       state.isLoading = true;
     });
@@ -200,13 +222,59 @@ const medicalDocSlice = createSlice({
       state.error = action.payload;
       state.isLoading = false;
     });
-    builder.addCase(downloadMedicalDocs.pending, (state) => {
+    builder.addCase(downloadFileMedicalDocs.pending, (state) => {
       state.isLoading = true;
     });
-    builder.addCase(downloadMedicalDocs.fulfilled, (state) => {
+    builder.addCase(downloadFileMedicalDocs.fulfilled, (state) => {
       state.isLoading = false;
     });
-    builder.addCase(downloadMedicalDocs.rejected, (state, action) => {
+    builder.addCase(downloadFileMedicalDocs.rejected, (state, action) => {
+      state.error = action.payload;
+      state.isLoading = false;
+    });
+    builder.addCase(addHighlight.pending, (state) => {
+      state.isLoading = true;
+    });
+    builder.addCase(addHighlight.fulfilled, (state, action) => {
+      state.currentDoc.highlights.push(action.payload);
+      state.isLoading = false;
+    });
+    builder.addCase(addHighlight.rejected, (state, action) => {
+      state.error = action.payload;
+      state.isLoading = false;
+    });
+    builder.addCase(deleteHighlight.pending, (state) => {
+      state.isLoading = true;
+    });
+    builder.addCase(deleteHighlight.fulfilled, (state, action) => {
+      state.currentDoc.highlights = state.currentDoc.highlights.filter(
+        (h) => h.id != action.payload
+      );
+      state.isLoading = false;
+    });
+    builder.addCase(deleteHighlight.rejected, (state, action) => {
+      state.error = action.payload;
+      state.isLoading = false;
+    });
+
+    builder.addCase(editOCR.pending, (state) => {
+      state.isLoading = true;
+    });
+    builder.addCase(editOCR.fulfilled, (state) => {
+      state.isLoading = false;
+    });
+    builder.addCase(editOCR.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
+    builder.addCase(fetchOCR.pending, (state) => {
+      state.isLoading = true;
+    });
+    builder.addCase(fetchOCR.fulfilled, (state, action) => {
+      state.tables = action.payload;
+      state.isLoading = false;
+    });
+    builder.addCase(fetchOCR.rejected, (state, action) => {
       state.error = action.payload;
       state.isLoading = false;
     });

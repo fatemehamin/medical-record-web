@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import theme from "../Theme";
 import ButtonText from "./ButtonText";
-import { ModalDeleteDoc, ModalShare } from "./FormModals";
+import { ModalDelete, ModalShare } from "./FormModals";
 import { TbDownload } from "react-icons/tb";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -105,10 +105,11 @@ const MenuComponent = ({ anchorEl, handleClose, id }) => {
         handleShare={handleShare}
       />
 
-      <ModalDeleteDoc
+      <ModalDelete
         open={openModalDelete}
         handleClose={handleCloseModalDelete}
         handleDelete={handleDelete}
+        title="Do you want to delete this document?"
       />
     </>
   );

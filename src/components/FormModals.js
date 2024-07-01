@@ -287,12 +287,10 @@ export const ModalShare = ({ open, handleClose, handleShare }) => {
   );
 };
 
-export const ModalDeleteDoc = ({ open, handleClose, count, handleDelete }) => {
+export const ModalDelete = ({ open, handleClose, title, handleDelete }) => {
   return (
     <BasicModal title="Delete files" open={open} handleClose={handleClose}>
-      <Typography sx={styles.bodyModalDeleteDoc}>
-        {`Do you want to delete all the ${count ? count : ""} documents?`}
-      </Typography>
+      <Typography sx={styles.bodyModalDeleteDoc}>{title}</Typography>
 
       <Box display="flex" justifyContent="space-around" gap={2} mt={6}>
         <Btn
@@ -331,7 +329,7 @@ export const ModalEditDoc = ({ open, handleClose }) => {
   } = useForm({
     resolver: yupResolver(editDocumentSchema),
     defaultValues: {
-      name: currentDoc.name.split("/")[0],
+      name: currentDoc.name,
       tag: currentDoc.tag,
       date: dayjs(currentDoc.date),
     },

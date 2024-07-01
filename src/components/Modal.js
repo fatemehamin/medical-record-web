@@ -26,11 +26,11 @@ const styles = {
   },
 };
 
-const BasicModal = ({ title, open, handleClose, ...props }) => {
+const BasicModal = ({ title, open, handleClose, sx, ...props }) => {
   return (
     <div>
       <Modal open={open} onClose={handleClose}>
-        <Box sx={styles.modal}>
+        <Box sx={[styles.modal, sx]}>
           <Box variant="div" sx={styles.header}>
             <Typography variant="p" fontSize={12} fontWeight={700}>
               {title}

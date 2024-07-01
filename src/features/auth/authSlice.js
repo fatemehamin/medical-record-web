@@ -19,7 +19,7 @@ const authSlice = createSlice({
     });
     builder.addCase(login.fulfilled, (state, action) => {
       state.isLoading = false;
-      state.username = action.payload.username;
+      state.username = action.payload;
       state.isAuthentication = true;
       state.error = null;
     });

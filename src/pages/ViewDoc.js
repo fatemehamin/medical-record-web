@@ -1,258 +1,105 @@
-// import Button from "@mui/material/Button";
-// import AddIcon from "@mui/icons-material/Add";
-// import EditIcon from "@mui/icons-material/Edit";
-// import DeleteIcon from "@mui/icons-material/DeleteOutlined";
-// import SaveIcon from "@mui/icons-material/Save";
-// import CancelIcon from "@mui/icons-material/Close";
-// import {
-//   GridRowModes,
-//   GridToolbarContainer,
-//   GridActionsCellItem,
-//   GridRowEditStopReasons,
-// } from "@mui/x-data-grid";
-
-// function EditToolbar(props) {
-//   const { setRows, setRowModesModel } = props;
-
-//   const handleClick = () => {
-//     const id = randomId();
-//     setRows((oldRows) => [...oldRows, { id, name: "", age: "", isNew: true }]);
-//     setRowModesModel((oldModel) => ({
-//       ...oldModel,
-//       [id]: { mode: GridRowModes.Edit, fieldToFocus: "name" },
-//     }));
-//   };
-
-//   return (
-//     <GridToolbarContainer>
-//       <Button color="primary" startIcon={<AddIcon />} onClick={handleClick}>
-//         Add record
-//       </Button>
-//     </GridToolbarContainer>
-//   );
-// }
-
-// const ViewDoc = () => {
-//   const [rowModesModel, setRowModesModel] = React.useState({});
-
-//   const handleRowEditStop = (params, event) => {
-//     if (params.reason === GridRowEditStopReasons.rowFocusOut) {
-//       event.defaultMuiPrevented = true;
-//     }
-//   };
-
-//   const handleEditClick = (id) => () => {
-//     setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.Edit } });
-//   };
-
-//   const handleSaveClick = (id) => () => {
-//     setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.View } });
-//   };
-
-//   const handleDeleteClick = (id) => () => {
-//     setRows(rows.filter((row) => row.id !== id));
-//   };
-
-//   const handleCancelClick = (id) => () => {
-//     setRowModesModel({
-//       ...rowModesModel,
-//       [id]: { mode: GridRowModes.View, ignoreModifications: true },
-//     });
-
-//     const editedRow = rows.find((row) => row.id === id);
-//     if (editedRow.isNew) {
-//       setRows(rows.filter((row) => row.id !== id));
-//     }
-//   };
-
-//
-// };
-
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Avatar, Box, Typography } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
-import {
-  randomCreatedDate,
-  randomTraderName,
-  randomId,
-  randomArrayItem,
-} from "@mui/x-data-grid-generator";
+import React, { useCallback, useEffect, useState } from "react";
+import { Box, Typography } from "@mui/material";
 import Toolbar from "../components/Toolbar";
 import ButtonText from "../components/ButtonText";
+import theme from "../Theme";
+import Topbar from "../components/Topbar";
+import moment from "moment-jalaali";
+import Table from "../components/Table";
+import HighLights from "../components/HighLights";
 import { LuTrash2 } from "react-icons/lu";
 import { TbDownload } from "react-icons/tb";
 import { FiEdit, FiShare2 } from "react-icons/fi";
 import { ReactComponent as AddNote } from "../assets/Icons/add_note.svg";
-import theme from "../Theme";
 import { GoZoomIn } from "react-icons/go";
-import Topbar from "../components/Topbar";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { ReactComponent as ArrowRight } from "../assets/Icons/arrow_right.svg";
-import moment from "moment-jalaali";
-import Table from "../components/Table";
 import {
   deleteMedicalDocs,
-  downloadMedicalDocs,
+  downloadFileMedicalDocs,
   fetchItemMedicalDoc,
+  shareMedicalDocs,
 } from "../features/medicalDoc/action";
-import { ModalDeleteDoc, ModalEditDoc } from "../components/FormModals";
+import {
+  ModalDelete,
+  ModalEditDoc,
+  ModalShare,
+} from "../components/FormModals";
 
-const roles = ["Market", "Finance", "Development"];
-const randomRole = () => {
-  return randomArrayItem(roles);
+const styles = {
+  container: {
+    display: "flex",
+    flexDirection: "column",
+    flex: 1,
+    p: 2,
+    bgcolor: "text.light",
+  },
+  toolbar: {
+    borderBottom: "1px solid",
+    borderBottomColor: "tritary.main",
+    p: 1,
+    pb: 2,
+    mb: 2,
+  },
 };
-
-const initialRows = [
-  {
-    id: randomId(),
-    name: randomTraderName(),
-    age: 25,
-    joinDate: randomCreatedDate(),
-    role: randomRole(),
-  },
-  {
-    id: randomId(),
-    name: randomTraderName(),
-    age: 36,
-    joinDate: randomCreatedDate(),
-    role: randomRole(),
-  },
-  {
-    id: randomId(),
-    name: randomTraderName(),
-    age: 19,
-    joinDate: randomCreatedDate(),
-    role: randomRole(),
-  },
-  {
-    id: randomId(),
-    name: randomTraderName(),
-    age: 28,
-    joinDate: randomCreatedDate(),
-    role: randomRole(),
-  },
-  {
-    id: randomId(),
-    name: randomTraderName(),
-    age: 23,
-    joinDate: randomCreatedDate(),
-    role: randomRole(),
-  },
-];
-
-const columns = [
-  { field: "name", headerName: "Name", width: 180, editable: true },
-  {
-    field: "age",
-    headerName: "Age",
-    type: "number",
-    width: 80,
-    align: "left",
-    headerAlign: "left",
-    editable: true,
-  },
-  {
-    field: "joinDate",
-    headerName: "Join date",
-    type: "date",
-    width: 180,
-    editable: true,
-  },
-  {
-    field: "role",
-    headerName: "Department",
-    width: 220,
-    editable: true,
-    type: "singleSelect",
-    valueOptions: ["Market", "Finance", "Development"],
-  },
-  // {
-  //   field: "actions",
-  //   type: "actions",
-  //   headerName: "Actions",
-  //   width: 100,
-  //   cellClassName: "actions",
-  //   getActions: ({ id }) => {
-  //     const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
-
-  //     if (isInEditMode) {
-  //       return [
-  //         <GridActionsCellItem
-  //           icon={<SaveIcon />}
-  //           label="Save"
-  //           sx={{
-  //             color: "primary.main",
-  //           }}
-  //           onClick={handleSaveClick(id)}
-  //         />,
-  //         <GridActionsCellItem
-  //           icon={<CancelIcon />}
-  //           label="Cancel"
-  //           className="textPrimary"
-  //           onClick={handleCancelClick(id)}
-  //           color="inherit"
-  //         />,
-  //       ];
-  //     }
-
-  //     return [
-  //       <GridActionsCellItem
-  //         icon={<EditIcon />}
-  //         label="Edit"
-  //         className="textPrimary"
-  //         onClick={handleEditClick(id)}
-  //         color="inherit"
-  //       />,
-  //       <GridActionsCellItem
-  //         icon={<DeleteIcon />}
-  //         label="Delete"
-  //         onClick={handleDeleteClick(id)}
-  //         color="inherit"
-  //       />,
-  //     ];
-  //   },
-  // },
-];
 
 const ViewDoc = () => {
   const id = JSON.parse(useParams().id);
 
-  const { tables, currentDoc } = useSelector((state) => state.medicalDoc);
+  const { currentDoc } = useSelector((state) => state.medicalDoc);
 
-  const [rows, setRows] = useState(initialRows);
   const [openModalDelete, setOpenModalDelete] = useState(false);
   const [openModalEditDoc, setOpenModalEditDoc] = useState(false);
   const [openModalShare, setOpenModalShare] = useState(false);
+  const [openModalAddHighlight, setOpenModalAddHighlight] = useState(false);
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   useEffect(() => {
     dispatch(fetchItemMedicalDoc(id));
   }, []);
 
-  const handleRowModesModelChange = (newRowModesModel) => {
-    console.log(newRowModesModel);
-    // setRowModesModel(newRowModesModel);
-  };
+  const handleDownloadFile = useCallback(
+    () => dispatch(downloadFileMedicalDocs(id)),
+    [id]
+  );
 
-  const handleCloseEditDoc = () => setOpenModalEditDoc(false);
-  const handleOpenEditDoc = () => setOpenModalEditDoc(true);
+  const handleCloseEditDoc = useCallback(() => setOpenModalEditDoc(false), []);
+  const handleOpenEditDoc = useCallback(() => setOpenModalEditDoc(true), []);
 
-  const processRowUpdate = (newRow) => {
-    const updatedRow = { ...newRow, isNew: false };
-    setRows(rows.map((row) => (row.id === newRow.id ? updatedRow : row)));
-    return updatedRow;
-  };
+  const handleCloseModalShare = useCallback(() => setOpenModalShare(false), []);
+  const handleOpenModalShare = useCallback(() => setOpenModalShare(true), []);
 
-  const handleDelete = () => dispatch(deleteMedicalDocs([id]));
-  const handleCloseModalDelete = () => setOpenModalDelete(false);
+  const handleOpenAddHighlight = useCallback(
+    () => setOpenModalAddHighlight(true),
+    []
+  );
 
-  const handleOpenModalDelete = () => setOpenModalDelete(true);
+  const handleOpenModalDelete = useCallback(() => setOpenModalDelete(true), []);
+  const handleCloseModalDelete = useCallback(
+    () => setOpenModalDelete(false),
+    []
+  );
+
+  const handleDelete = useCallback(() => {
+    dispatch(deleteMedicalDocs([id])).then(() => navigate(-1));
+    setOpenModalDelete(false);
+  }, [id]);
+
+  const handleShare = useCallback(
+    (email) => {
+      dispatch(shareMedicalDocs({ data: id, email }));
+      setOpenModalShare(false);
+    },
+    [id]
+  );
 
   return (
     <Box variant="div" display="flex" flexDirection="column" flex={1} p={3}>
       <Topbar title="Medical Documents" />
+
       <Toolbar
         sx={{ bgcolor: "transparent", p: 1 }}
         title={
@@ -262,7 +109,7 @@ const ViewDoc = () => {
             </Typography>
             <ArrowRight width={24} stroke={theme.palette.text.main} />
             <Typography fontSize={24} fontWeight={400}>
-              {currentDoc?.name.split("/")[0]}
+              {currentDoc?.name}
             </Typography>
             <Typography fontSize={16} fontWeight={400}>
               ({moment(currentDoc?.date).format("DD MMM YYYY")})
@@ -271,41 +118,36 @@ const ViewDoc = () => {
         }
       >
         <ButtonText title="Edit" Icon={FiEdit} onClick={handleOpenEditDoc} />
-        <ButtonText title="Share" Icon={FiShare2} />
+        <ButtonText
+          title="Share"
+          Icon={FiShare2}
+          onClick={handleOpenModalShare}
+        />
       </Toolbar>
 
-      <Box
-        variant="div"
-        display="flex"
-        flexDirection="column"
-        flex={1}
-        p={3}
-        className="page-container"
-        bgcolor="text.light"
-      >
+      <Box className="page-container" sx={styles.container} variant="div">
         <Toolbar
           title="Files"
-          sx={{
-            borderBottom: "1px solid",
-            borderBottomColor: "tritary.main",
-            p: 1,
-            pb: 2,
-            mb: 2,
-          }}
+          sx={styles.toolbar}
           styleTilte={{ fontSize: 20 }}
         >
           <ButtonText
             title="Download Files"
             Icon={TbDownload}
-            onClick={() => {
-              dispatch(downloadMedicalDocs(id));
-            }}
+            onClick={handleDownloadFile}
           />
-          <ButtonText title="Delete" Icon={LuTrash2} />
+          <ButtonText
+            title="Delete"
+            Icon={LuTrash2}
+            onClick={handleOpenModalDelete}
+          />
         </Toolbar>
 
         <Box variant="div" width={303} maxHeight={400} position="relative">
-          <img src={currentDoc?.file_data} width={303} />
+          <img
+            src={`data:image/${currentDoc?.type};base64,${currentDoc?.file_data}`}
+            width={303}
+          />
           <Box
             variant="div"
             sx={{
@@ -326,24 +168,10 @@ const ViewDoc = () => {
         </Box>
       </Box>
 
-      {tables.length > 0 && (
-        <Box
-          variant="div"
-          display="flex"
-          flexDirection="column"
-          flex={1}
-          p={3}
-          className="page-container"
-          bgcolor="text.light"
-        >
+      {currentDoc?.filetable.length > 0 && (
+        <Box variant="div" className="page-container" sx={styles.container}>
           <Toolbar
-            sx={{
-              borderBottom: "1px solid",
-              borderBottomColor: "tritary.main",
-              p: 1,
-              pb: 2,
-              mb: 2,
-            }}
+            sx={styles.toolbar}
             styleTilte={{ fontSize: 20 }}
             title="Extracted Data"
           >
@@ -352,32 +180,20 @@ const ViewDoc = () => {
             <ButtonText title="Delete" Icon={LuTrash2} />
           </Toolbar>
 
-          {tables.map((table, index) => (
-            <Table key={index} data={table} />
+          {currentDoc.filetable.map((table, index) => (
+            <Table key={index} data={table} editMode="disabled" />
           ))}
         </Box>
       )}
-      <Box
-        variant="div"
-        display="flex"
-        flexDirection="column"
-        flex={1}
-        p={3}
-        className="page-container"
-        bgcolor="text.light"
-      >
+      <Box variant="div" sx={styles.container} className="page-container">
         <Toolbar
-          sx={{
-            borderBottom: "1px solid",
-            borderBottomColor: "tritary.main",
-            p: 1,
-            pb: 2,
-            mb: 2,
-          }}
+          sx={styles.toolbar}
           styleTilte={{ fontSize: 20 }}
           title="Highlights"
         >
           <ButtonText
+            typeProps="stroke"
+            onClick={handleOpenAddHighlight}
             Icon={() => (
               <AddNote
                 stroke={theme.palette.text[100]}
@@ -387,56 +203,32 @@ const ViewDoc = () => {
             )}
           />
         </Toolbar>
-        {!currentDoc?.highlights.length > 0 ? (
-          <>
-            <Box
-              variant="div"
-              display="flex"
-              alignItems="center"
-              justifyContent="space-between"
-            >
-              <Box variant="div" display="flex" alignItems="center" gap={1}>
-                <Avatar src="" alt="" />
-                <Typography fontSize={14} fontWeight={500} color="text.main">
-                  name
-                </Typography>
-              </Box>
 
-              <Box variant="div" display="flex" alignItems="center" gap={1}>
-                <Typography fontSize={12} fontWeight={400} color="text.main">
-                  date
-                </Typography>
-                <LuTrash2 color={theme.palette.text[100]} size={20} />
-              </Box>
-            </Box>
-            <Typography fontSize={14} fontWeight={400} color="text.dark">
-              list highlights
-            </Typography>
-          </>
-        ) : (
-          <Typography
-            color="text.200"
-            fontWeight={400}
-            fontSize={16}
-            textAlign="center"
-            p={2}
-          >
-            No highlights to show... yet!
-          </Typography>
-        )}
+        <HighLights
+          setOpenModalAddHighlight={setOpenModalAddHighlight}
+          openModalAddHighlight={openModalAddHighlight}
+        />
       </Box>
-      <ModalDeleteDoc
+
+      <ModalDelete
         open={openModalDelete}
         handleClose={handleCloseModalDelete}
         handleDelete={handleDelete}
+        title="Do you want to delete this document?"
       />
-      <ModalEditDoc open={openModalEditDoc} handleClose={handleCloseEditDoc} />
 
-      {/* <ModalShare
+      {openModalEditDoc && (
+        <ModalEditDoc
+          open={openModalEditDoc}
+          handleClose={handleCloseEditDoc}
+        />
+      )}
+
+      <ModalShare
         open={openModalShare}
-        handleClose={handleCloseShare}
+        handleClose={handleCloseModalShare}
         handleShare={handleShare}
-      /> */}
+      />
     </Box>
   );
 };

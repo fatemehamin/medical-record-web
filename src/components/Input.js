@@ -9,13 +9,13 @@ import {
 } from "@mui/material";
 
 const styles = {
-  input: {
+  input: (multiline) => ({
     borderColor: theme.palette.text[100],
     borderRadius: 8,
-    height: 48,
+    height: multiline ? 160 : 48,
     display: "flex",
     caretColor: theme.palette.primary.main,
-  },
+  }),
   placeholder: {
     "&::placeholder": {
       color: "text.100",
@@ -36,7 +36,7 @@ const styles = {
 };
 
 const Input = forwardRef(
-  ({ title, isPlaceholderSelect, type, ...props }, ref) => {
+  ({ title, isPlaceholderSelect, type, multiline, ...props }, ref) => {
     const [showPassword, setShowPassword] = useState(false);
 
     const handleClickShowPassword = () => setShowPassword((show) => !show);
@@ -50,6 +50,7 @@ const Input = forwardRef(
         </Typography>
         <TextField
           {...props}
+          multiline={multiline}
           ref={ref}
           type={
             type === "password" ? (showPassword ? "text" : "password") : type
@@ -57,7 +58,7 @@ const Input = forwardRef(
           variant="outlined"
           fullWidth
           InputProps={{
-            style: styles.input,
+            style: styles.input(multiline),
             endAdornment: type === "password" && (
               <InputAdornment position="end">
                 <IconButton

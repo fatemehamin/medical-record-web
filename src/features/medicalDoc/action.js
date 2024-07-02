@@ -27,7 +27,7 @@ export const addMedicalDocs = createAsyncThunk(
   }
 );
 
-export const addMedicalDocsOCR = createAsyncThunk(
+export const addOCR = createAsyncThunk(
   "medicalDoc/addMedicalDocsOCR",
   async ({ file, url, tag, name, date }) => {
     const formData = new FormData();
@@ -48,6 +48,54 @@ export const addMedicalDocsOCR = createAsyncThunk(
       name,
       date,
     };
+  }
+);
+
+export const editOCR = createAsyncThunk(
+  "medicalDoc/editOCR",
+  async ({ newTables, id }) => {
+    await axiosAPI.post("/offline_data/ocr_edit/", {
+      id,
+      newTables,
+      confirm: "",
+    });
+    return newTables;
+  }
+);
+
+export const removeOCR = createAsyncThunk(
+  "medicalDoc/removeOCR",
+  async (id) => {
+    const formData = new FormData();
+
+    formData.append("id", id);
+    formData.append("cancel", "");
+
+    await axiosAPI.post("/offline_data/ocr_edit/", formData);
+  }
+);
+
+export const downloadOCR = createAsyncThunk(
+  "medicalDoc/downloadOCR",
+  async ({ id, fileName }) => {
+    const res = await axiosAPI.get(
+      `offline_data/med_doc/?download_csv&file_id=${id}`,
+      { responseType: "text/csv" }
+    );
+
+    const blob = new Blob([res.data], { type: "text/csv;charset=utf-8;" });
+
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+
+    const filename = `${fileName}.csv`;
+
+    link.setAttribute("download", filename); // Set the desired filename
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode.removeChild(link);
+    window.URL.revokeObjectURL(url);
   }
 );
 
@@ -127,7 +175,7 @@ export const downloadFileMedicalDocs = createAsyncThunk(
     const link = document.createElement("a");
     link.href = url;
 
-    const filename = res.data.file_name.split("/")[1];
+    const filename = res.data.name + res.data.type;
 
     link.setAttribute("download", filename); // Set the desired filename
     document.body.appendChild(link);
@@ -139,7 +187,7 @@ export const downloadFileMedicalDocs = createAsyncThunk(
 
 export const addHighlight = createAsyncThunk(
   "medicalDoc/addHighlight",
-  async ({ id, highlight }) => {
+  async ({ id, highlight, name, username, avatar }) => {
     const formData = new FormData();
 
     formData.append("file_id", id);
@@ -148,7 +196,14 @@ export const addHighlight = createAsyncThunk(
 
     const res = await axiosAPI.post("offline_data/med_doc/", formData);
 
-    return { id: res.data.id, content: highlight, date: res.data.date };
+    return {
+      id: res.data.id,
+      content: highlight,
+      date: res.data.date,
+      name,
+      username,
+      avatar,
+    };
   }
 );
 
@@ -166,20 +221,3 @@ export const deleteHighlight = createAsyncThunk(
     return highlight_id;
   }
 );
-
-export const editOCR = createAsyncThunk(
-  "medicalDoc/editOCR",
-  async ({ tables, id }) => {
-    const formData = new FormData();
-
-    formData.append("newTables", tables);
-    formData.append("id", id);
-
-    await axiosAPI.post("offline_data/upload_test/", formData);
-  }
-);
-
-export const fetchOCR = createAsyncThunk("medicalDoc/fetchOCR", async () => {
-  const res = await axiosAPI.get("offline_data/med_doc/");
-  return res.data;
-});

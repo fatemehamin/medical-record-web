@@ -3,6 +3,7 @@ import { login, signup } from "./action";
 
 const initialState = {
   username: "",
+  name: "",
   profile: null,
   email: "",
   isAuthentication: false,

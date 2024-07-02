@@ -50,7 +50,7 @@ const HighLights = ({ setOpenModalAddHighlight, openModalAddHighlight }) => {
   );
 
   const listHighlights = useCallback(
-    [...currentDoc.highlights]
+    [...currentDoc?.highlights]
       .sort((a, b) => new Date(b.date) - new Date(a.date))
       .map((h, index) => {
         const name =
@@ -103,14 +103,15 @@ const HighLights = ({ setOpenModalAddHighlight, openModalAddHighlight }) => {
       {currentDoc?.highlights.length > 0 ? (
         <>
           {seeAll ? listHighlights : listHighlights.slice(0, 2)}
-          {!seeAll && (
-            <ButtonText
-              title="See All"
-              color="primary.main"
-              onClick={handleSeeAll}
-              sx={{ justifyContent: "flex-end", m: 1 }}
-            />
-          )}
+          {!seeAll ||
+            (listHighlights.length <= 2 && (
+              <ButtonText
+                title="See All"
+                color="primary.main"
+                onClick={handleSeeAll}
+                sx={{ justifyContent: "flex-end", m: 1 }}
+              />
+            ))}
         </>
       ) : (
         <Typography

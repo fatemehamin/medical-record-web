@@ -11,6 +11,7 @@ import { ReactComponent as Selection } from "../assets/Icons/selection_view.svg"
 import { Menu, MenuItem } from "@mui/material";
 import {
   deleteMedicalDocs,
+  downloadFileMedicalDocs,
   shareMedicalDocs,
 } from "../features/medicalDoc/action";
 
@@ -63,6 +64,11 @@ const MenuComponent = ({ anchorEl, handleClose, id }) => {
     [id]
   );
 
+  const handleDownload = useCallback(
+    () => dispatch(downloadFileMedicalDocs(id)),
+    [id]
+  );
+
   return (
     <>
       <Menu
@@ -86,7 +92,7 @@ const MenuComponent = ({ anchorEl, handleClose, id }) => {
           />
         </MenuItem>
 
-        <MenuItem onClick={handleClose} sx={{ p: 1 }}>
+        <MenuItem onClick={handleDownload} sx={{ p: 1 }}>
           <ButtonText title="Download" Icon={TbDownload} />
         </MenuItem>
 

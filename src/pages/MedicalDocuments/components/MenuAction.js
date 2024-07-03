@@ -1,19 +1,20 @@
 import React, { useCallback, useState } from "react";
-import theme from "../Theme";
-import ButtonText from "./ButtonText";
-import { ModalDelete, ModalShare } from "./FormModals";
+import theme from "../../../Theme";
+import ButtonText from "../../../components/ButtonText";
+import Alert from "../../../components/Alert";
+import ModalShare from "./ModalShare";
 import { TbDownload } from "react-icons/tb";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { FiShare2 } from "react-icons/fi";
 import { LuTrash2 } from "react-icons/lu";
-import { ReactComponent as Selection } from "../assets/Icons/selection_view.svg";
+import { ReactComponent as Selection } from "../../../assets/Icons/selection_view.svg";
 import { Menu, MenuItem } from "@mui/material";
 import {
   deleteMedicalDocs,
   downloadFileMedicalDocs,
   shareMedicalDocs,
-} from "../features/medicalDoc/action";
+} from "../../../features/medicalDoc/action";
 
 const styles = {
   menu: {
@@ -111,10 +112,10 @@ const MenuComponent = ({ anchorEl, handleClose, id }) => {
         handleShare={handleShare}
       />
 
-      <ModalDelete
+      <Alert
         open={openModalDelete}
         handleClose={handleCloseModalDelete}
-        handleDelete={handleDelete}
+        onClick={handleDelete}
         title="Do you want to delete this document?"
       />
     </>

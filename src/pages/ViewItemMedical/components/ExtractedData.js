@@ -2,13 +2,14 @@ import React, { useCallback, useState } from "react";
 import Toolbar from "../../../components/Toolbar";
 import ButtonText from "../../../components/ButtonText";
 import Table from "../../../components/Table";
+import Alert from "../../../components/Alert";
+import ModalEditTable from "../../MedicalDocuments/components/ModalEditTable";
 import { Box } from "@mui/material";
 import { LuTrash2 } from "react-icons/lu";
 import { TbDownload } from "react-icons/tb";
 import { FiEdit } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { downloadOCR, removeOCR } from "../../../features/medicalDoc/action";
-import Alert from "../../../components/Alert";
 
 const styles = {
   container: {
@@ -28,6 +29,7 @@ const styles = {
 
 const ExtractedData = () => {
   const [openModalDelete, setOpenModalDelete] = useState(false);
+  const [openModalEdit, setOpenModalEdit] = useState(false);
 
   const { currentDoc } = useSelector((state) => state.medicalDoc);
 
@@ -36,7 +38,14 @@ const ExtractedData = () => {
   const handleOpenDelete = useCallback(() => setOpenModalDelete(true), []);
   const handleCloseDelete = useCallback(() => setOpenModalDelete(false), []);
 
-  const handleDownloadCSV = () => dispatch(downloadOCR(currentDoc.id));
+  const handleOpenEdit = useCallback(() => setOpenModalEdit(true), []);
+  const handleCloseEdit = useCallback(() => setOpenModalEdit(false), []);
+
+  const handleDownloadCSV = useCallback(
+    () =>
+      dispatch(downloadOCR({ id: currentDoc.id, fileName: currentDoc.name })),
+    [currentDoc]
+  );
 
   const handleDelete = useCallback(() => {
     dispatch(removeOCR(currentDoc.id));
@@ -50,7 +59,7 @@ const ExtractedData = () => {
         styleTilte={{ fontSize: 20 }}
         title="Extracted Data"
       >
-        {/* <ButtonText title="Edit table" Icon={FiEdit} onClick={s} /> */}
+        <ButtonText title="Edit table" Icon={FiEdit} onClick={handleOpenEdit} />
         <ButtonText
           title="Download as CSV"
           Icon={TbDownload}
@@ -69,6 +78,7 @@ const ExtractedData = () => {
         onClick={handleDelete}
         title="Do you want to delete this Table?"
       />
+      <ModalEditTable open={openModalEdit} handleClose={handleCloseEdit} />
     </Box>
   );
 };

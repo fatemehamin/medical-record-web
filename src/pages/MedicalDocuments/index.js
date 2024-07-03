@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Topbar from "../../components/Topbar";
 import ToolbarMedical from "./components/ToolbarMedical";
-import CollapesItem from "../../components/CollapesItem";
+import CollapesItem from "./components/CollapesItem";
 import NoDocsComponent from "./components/NoDocsComponent";
 import ModalAddDoc from "./components/ModalAddDoc";
 import ModalSearch from "./components/ModalSearch";

@@ -6,7 +6,7 @@ import Profile from "../../pages/Profile";
 import SideBar from "../../components/sidebar";
 import MedicalDocuments from "../../pages/MedicalDocuments";
 import MyDoctors from "../../pages/MyDoctors";
-import ViewDoc from "../../pages/ViewDoc";
+import ViewItemMedical from "../../pages/ViewItemMedical";
 import NotFound from "../../pages/NotFound";
 import { useSelector } from "react-redux";
 import {
@@ -45,7 +45,10 @@ const Routers = () => {
             path="/medicalDocument"
             element={mainElement(MedicalDocuments)}
           />
-          <Route path="/medicalDocument/:id" element={mainElement(ViewDoc)} />
+          <Route
+            path="/medicalDocument/:id"
+            element={mainElement(ViewItemMedical)}
+          />
           <Route path="/profile" element={<Profile />} />
           <Route path="/myDoctors" element={<MyDoctors />} />
           <Route path="*" element={<NotFound />} />

@@ -91,7 +91,11 @@ const medicalDocSlice = createSlice({
       state.isLoading = true;
     });
     builder.addCase(addOCR.fulfilled, (state, action) => {
+      if (!state.tags.find((tag) => tag === action.payload.tag)) {
+        state.tags.push(action.payload.tag);
+      }
       state.currentDoc = action.payload;
+      state.docs.push(action.payload);
       state.isLoading = false;
     });
     builder.addCase(addOCR.rejected, (state, action) => {

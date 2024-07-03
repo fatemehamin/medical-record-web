@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Box, Typography } from "@mui/material";
 import { editOCR, removeOCR } from "../../../features/medicalDoc/action";
 
-const MedicalDocuments = ({ open, handleClose }) => {
+const ModalEditTable = ({ open, handleClose }) => {
   const [newTables, setNewTables] = useState(null);
 
   const { currentDoc } = useSelector((state) => state.medicalDoc);
@@ -71,4 +71,4 @@ const MedicalDocuments = ({ open, handleClose }) => {
   );
 };
 
-export default MedicalDocuments;
+export default ModalEditTable;

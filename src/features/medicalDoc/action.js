@@ -47,6 +47,7 @@ export const addOCR = createAsyncThunk(
       tag,
       name,
       date,
+      highlights: null,
     };
   }
 );

@@ -103,7 +103,7 @@ const Login = () => {
     const formdata = { ...data };
     dispatch(login(formdata))
       .unwrap()
-      .then(() => navigate("/dashboard/"))
+      .then(() => navigate("/medicalDocument/"))
       .catch((err) => console.log("err", err));
   };
 
